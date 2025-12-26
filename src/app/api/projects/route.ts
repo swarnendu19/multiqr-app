@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function GET(request: Request) {
     const userId = request.headers.get('user-id');
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     try {
+        const prisma = getPrisma();
         const projects = await prisma.qRProject.findMany({
             where: { user_id: userId },
             orderBy: { updated_at: 'desc' },
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
 
     try {
         const body = await request.json();
+        const prisma = getPrisma();
         const project = await prisma.qRProject.create({
             data: { ...body, user_id: userId },
         });

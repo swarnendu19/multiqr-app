@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function GET(
     request: Request,
@@ -9,6 +9,7 @@ export async function GET(
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     try {
+        const prisma = getPrisma();
         const project = await prisma.qRProject.findFirst({
             where: { id: params.id, user_id: userId },
         });
@@ -35,6 +36,7 @@ export async function PATCH(
             console.log('thumbnail_url is missing or null');
         }
 
+        const prisma = getPrisma();
         const project = await prisma.qRProject.update({
             where: { id: params.id }, // In a real app, verify user_id ownership first or use updateMany
             data: body,
@@ -53,6 +55,7 @@ export async function DELETE(
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     try {
+        const prisma = getPrisma();
         await prisma.qRProject.delete({
             where: { id: params.id },
         });

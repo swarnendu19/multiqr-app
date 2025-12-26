@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
-import prisma from '@/lib/prisma';
+import { getPrisma } from '@/lib/prisma';
 
 export async function POST(request: Request) {
     const userId = request.headers.get('user-id');
@@ -9,6 +9,7 @@ export async function POST(request: Request) {
     const { priceId } = await request.json();
 
     try {
+        const prisma = getPrisma();
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
