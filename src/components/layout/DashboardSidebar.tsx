@@ -12,7 +12,7 @@ import {
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/manage' },
-  { icon: QrCode, label: 'My QR Codes', path: '/manage/qrcodes' },
+  { icon: QrCode, label: 'My QR Codes', path: '/manage' },
   { icon: FileStack, label: 'Templates', path: '/manage/templates' },
   { icon: BarChart3, label: 'Analytics', path: '/manage/analytics' },
   { icon: User, label: 'Account', path: '/account' },
