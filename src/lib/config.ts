@@ -1,1 +1,1 @@
-export const API_URL = 'https://multiqr-app.vercel.app/';
+export const API_URL = 'https://multiqr-app.vercel.app';
