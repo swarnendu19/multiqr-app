@@ -32,7 +32,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   if (!user) return null;
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
       <DashboardSidebar />
       <div className="flex-1 flex flex-col">
         <Header />
