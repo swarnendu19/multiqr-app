@@ -59,7 +59,7 @@ export default function QREditor() {
         exportCanvas,
         clearCanvas,
         getCanvasJSON,
-    } = useCanvas(canvasRef, canvasOptions);
+    } = useCanvas(canvasRef, canvasOptions, [loading]);
 
     const handleSave = async () => {
         if (!id) return;

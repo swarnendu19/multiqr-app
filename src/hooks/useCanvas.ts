@@ -19,7 +19,7 @@ interface UseCanvasOptions {
   backgroundColor?: string;
 }
 
-export function useCanvas(canvasRef: React.RefObject<HTMLCanvasElement>, options: UseCanvasOptions) {
+export function useCanvas(canvasRef: React.RefObject<HTMLCanvasElement>, options: UseCanvasOptions, deps: any[] = []) {
   const [fabricCanvas, setFabricCanvas] = useState<FabricCanvas | null>(null);
   const [layers, setLayers] = useState<CanvasLayer[]>([]);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
@@ -59,7 +59,7 @@ export function useCanvas(canvasRef: React.RefObject<HTMLCanvasElement>, options
       console.log('Disposing FabricCanvas');
       canvas.dispose();
     };
-  }, [canvasRef, options.width, options.height, options.backgroundColor]);
+  }, [canvasRef, options.width, options.height, options.backgroundColor, ...deps]);
 
   // Update canvas selection handlers
   useEffect(() => {
