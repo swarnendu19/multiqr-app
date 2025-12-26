@@ -82,15 +82,16 @@ export function Header() {
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => router.push('/pricing')}>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Pricing
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
                     Sign Out
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/pricing')}>
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    Pricing
-                  </DropdownMenuItem>
+
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
