@@ -57,7 +57,7 @@ export function useQRProjects() {
     }
   }, [user, fetchProjects]);
 
-  const createProject = async (type: QRType, name?: string): Promise<string | null> => {
+  const createProject = useCallback(async (type: QRType, name?: string): Promise<string | null> => {
     if (!user) {
       toast.error('Please sign in to create projects');
       return null;
@@ -75,9 +75,6 @@ export function useQRProjects() {
           qr_type: type,
           content: JSON.stringify({}), // Sending as string if backend expects string, or object if json
           design: JSON.stringify(defaultDesign),
-          // If backend expects Json type (object), I should send object. 
-          // But I reverted schema to String. So I must send string.
-          // Wait, I reverted schema to String. So I MUST send stringified JSON.
         }),
       });
 
@@ -91,9 +88,9 @@ export function useQRProjects() {
       toast.error('Failed to create project');
       return null;
     }
-  };
+  }, [user, fetchProjects]);
 
-  const updateProject = async (
+  const updateProject = useCallback(async (
     id: string,
     updates: Partial<Pick<QRProject, 'name' | 'content' | 'design' | 'canvas_data' | 'thumbnail_url'>>
   ) => {
@@ -135,9 +132,9 @@ export function useQRProjects() {
       toast.error('Failed to save changes');
       return false;
     }
-  };
+  }, [user, fetchProjects]);
 
-  const deleteProject = async (id: string) => {
+  const deleteProject = useCallback(async (id: string) => {
     if (!user) return false;
 
     try {
@@ -158,9 +155,9 @@ export function useQRProjects() {
       toast.error('Failed to delete project');
       return false;
     }
-  };
+  }, [user]);
 
-  const duplicateProject = async (project: QRProject): Promise<string | null> => {
+  const duplicateProject = useCallback(async (project: QRProject): Promise<string | null> => {
     if (!user) return null;
 
     try {
@@ -191,9 +188,9 @@ export function useQRProjects() {
       toast.error('Failed to duplicate project');
       return null;
     }
-  };
+  }, [user, fetchProjects]);
 
-  const getProject = async (id: string): Promise<QRProject | null> => {
+  const getProject = useCallback(async (id: string): Promise<QRProject | null> => {
     if (!user) return null;
     try {
       const response = await fetch(`${API_URL}/api/projects/${id}`, {
@@ -222,7 +219,7 @@ export function useQRProjects() {
       console.error('Error fetching project:', error);
       return null;
     }
-  };
+  }, [user]);
 
   return {
     projects,
