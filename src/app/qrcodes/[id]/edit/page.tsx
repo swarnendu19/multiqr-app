@@ -17,7 +17,6 @@ import { CanvasToolbar } from '@/components/qr/CanvasToolbar';
 import { LayerPanel } from '@/components/qr/LayerPanel';
 import { Loader2, Save, ArrowLeft, Palette, FileText, Settings, Layers, Sparkles, Frame } from 'lucide-react';
 import { toast } from 'sonner';
-import { debounce } from '@/lib/debounce';
 
 const defaultDesign: QRDesign = {
     ...baseDefaultDesign,
@@ -107,65 +106,39 @@ export default function QREditor() {
         if (id && user) loadProject();
     }, [id, user, authLoading, loadProject, router]);
 
-    // Use ref to always have latest values for the debounced function
-    const contentRef = useRef(content);
-    const designRef = useRef(design);
-    const projectRef = useRef(project);
-    contentRef.current = content;
-    designRef.current = design;
-    projectRef.current = project;
+    // Generate QR when canvas is ready or content/design changes
+    useEffect(() => {
+        if (!canvas || !project) return;
 
-    // Stable debounced function that uses refs for latest values
-    // Stable debounced function that uses refs for latest values
-    const debouncedGenerateQR = useMemo(
-        () => debounce(async () => {
-            const currentProject = projectRef.current;
-            if (!currentProject) return;
+        const generate = async () => {
             try {
                 const dataUrl = await generateQRDataURL(
-                    currentProject.qr_type as QRType,
-                    contentRef.current,
-                    designRef.current
+                    project.qr_type as QRType,
+                    content,
+                    design
                 );
+
                 if (dataUrl) {
-                    // toast.info(`Generated QR: ${dataUrl.length} chars`);
                     await updateQRCode(dataUrl);
 
                     // Update frame if exists
-                    if (designRef.current.frame.type !== 'none') {
-                        updateFrame(designRef.current.frame, designRef.current.size);
+                    if (design.frame.type !== 'none') {
+                        updateFrame(design.frame, design.size);
                     } else {
-                        // Also call updateFrame with none to remove existing frame
-                        updateFrame(designRef.current.frame, designRef.current.size);
+                        updateFrame(design.frame, design.size);
                     }
-                } else {
-                    console.error('Generated empty data URL');
-                    toast.error('Failed to generate QR code data');
                 }
             } catch (error) {
                 console.error('Error generating QR:', error);
                 toast.error('Error generating QR code');
             }
-        }, 300),
-        [updateQRCode, updateFrame]
-    );
+        };
 
-    // Generate QR when canvas is ready or content/design changes
-    useEffect(() => {
-        console.log('QREditor useEffect triggered', {
-            canvasInitialized: !!canvas,
-            projectLoaded: !!project,
-            contentChanged: !!content,
-            designChanged: !!design
-        });
+        // Debounce generation
+        const timer = setTimeout(generate, 300);
 
-        if (canvas && project) {
-            console.log('Calling debouncedGenerateQR');
-            debouncedGenerateQR();
-        } else {
-            console.log('Skipping generate: canvas or project missing');
-        }
-    }, [canvas, project, content, design, debouncedGenerateQR]);
+        return () => clearTimeout(timer);
+    }, [canvas, project, content, design, updateQRCode, updateFrame]);
 
 
 
