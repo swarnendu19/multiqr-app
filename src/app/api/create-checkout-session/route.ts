@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { getPrisma } from '@/lib/prisma';
+import { APP_URL } from '@/lib/config';
 
 export async function POST(request: Request) {
     const userId = request.headers.get('user-id');
@@ -32,8 +33,8 @@ export async function POST(request: Request) {
             customer: customerId,
             line_items: [{ price: priceId, quantity: 1 }],
             mode: 'subscription',
-            success_url: `https://multiqr-app.vercel.app/manage?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `https://multiqr-app.vercel.app/pricing`,
+            success_url: `${APP_URL}/manage?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${APP_URL}/pricing`,
             metadata: { userId: user.id },
         });
 

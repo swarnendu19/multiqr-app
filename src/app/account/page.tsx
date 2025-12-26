@@ -87,13 +87,39 @@ export default function Account() {
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
                                         <span className="font-medium">Current Plan</span>
-                                        <Badge variant="secondary">Free</Badge>
+                                        <Badge variant={user?.subscription_status === 'active' ? 'default' : 'secondary'}>
+                                            {user?.subscription_status === 'active' ? 'Pro' : 'Free'}
+                                        </Badge>
                                     </div>
                                     <p className="text-sm text-muted-foreground">
-                                        Basic features with limited exports
+                                        {user?.subscription_status === 'active'
+                                            ? 'Unlimited QR codes and premium features'
+                                            : 'Basic features with limited exports (Max 5 QR codes)'}
                                     </p>
                                 </div>
-                                <Button variant="secondary">Upgrade</Button>
+                                {user?.subscription_status === 'active' ? (
+                                    <Button
+                                        variant="outline"
+                                        onClick={async () => {
+                                            try {
+                                                const res = await fetch('/api/create-portal-session', {
+                                                    method: 'POST',
+                                                    headers: { 'user-id': user.id },
+                                                });
+                                                const data = await res.json();
+                                                if (data.url) window.location.href = data.url;
+                                            } catch (error) {
+                                                toast.error('Failed to open billing portal');
+                                            }
+                                        }}
+                                    >
+                                        Manage Subscription
+                                    </Button>
+                                ) : (
+                                    <Button onClick={() => window.location.href = '/pricing'}>
+                                        Upgrade
+                                    </Button>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

@@ -24,6 +24,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
+  updateUser: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -105,8 +106,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isProUser = user?.subscription_status === 'active';
 
+  const updateUser = (updates: Partial<User>) => {
+    if (user && session) {
+      const updatedUser = { ...user, ...updates };
+      const updatedSession = { ...session, user: updatedUser };
+      setUser(updatedUser);
+      setSession(updatedSession);
+      localStorage.setItem('session', JSON.stringify(updatedSession));
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, isProUser, signUp, signIn, signOut, resetPassword }}>
+    <AuthContext.Provider value={{ user, session, loading, isProUser, signUp, signIn, signOut, resetPassword, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

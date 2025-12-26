@@ -24,6 +24,21 @@ export async function POST(request: Request) {
     try {
         const body = await request.json();
         const prisma = getPrisma();
+
+        // Check subscription status and limits
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
+
+        if (user.subscription_status !== 'active') {
+            const count = await prisma.qRProject.count({ where: { user_id: userId } });
+            if (count >= 5) {
+                return NextResponse.json(
+                    { error: 'Free limit reached. Upgrade for unlimited QR codes.' },
+                    { status: 403 }
+                );
+            }
+        }
+
         const project = await prisma.qRProject.create({
             data: { ...body, user_id: userId },
         });

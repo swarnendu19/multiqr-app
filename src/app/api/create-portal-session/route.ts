@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { stripe } from '@/lib/stripe';
 import { getPrisma } from '@/lib/prisma';
+import { APP_URL } from '@/lib/config';
 
 export async function POST(request: Request) {
     const userId = request.headers.get('user-id');
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
 
         const session = await stripe.billingPortal.sessions.create({
             customer: user.stripe_customer_id,
-            return_url: `https://multiqr-app.vercel.app/manage`,
+            return_url: `${APP_URL}/manage`,
         });
 
         return NextResponse.json({ url: session.url });

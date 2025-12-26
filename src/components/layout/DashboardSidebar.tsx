@@ -15,7 +15,6 @@ const navItems = [
   { icon: QrCode, label: 'My QR Codes', path: '/manage/qrcodes' },
   { icon: FileStack, label: 'Templates', path: '/manage/templates' },
   { icon: BarChart3, label: 'Analytics', path: '/manage/analytics' },
-  { icon: CreditCard, label: 'Billing', path: '/manage/billing' },
   { icon: User, label: 'Account', path: '/account' },
   { icon: Settings, label: 'Settings', path: '/account/settings' },
 ];

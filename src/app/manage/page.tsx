@@ -51,7 +51,7 @@ import { API_URL } from '@/lib/config';
 
 function ManageContent() {
     const router = useRouter();
-    const { user } = useAuth();
+    const { user, updateUser } = useAuth();
     const searchParams = useSearchParams();
     const { projects, loading, deleteProject, duplicateProject } = useQRProjects();
     const [search, setSearch] = useState('');
@@ -65,14 +65,15 @@ function ManageContent() {
 
             if (searchParams.get('session_id')) {
                 try {
-                    await fetch(`${API_URL}/api/check-subscription`, {
+                    const response = await fetch(`${API_URL}/api/check-subscription`, {
                         headers: { 'user-id': user.id }
                     });
+                    const { status } = await response.json();
+                    updateUser({ subscription_status: status });
+
+                    toast.success('Subscription updated!');
                     // Clear query params
                     router.replace('/manage');
-                    toast.success('Subscription updated!');
-                    // Reload page to refresh auth state (simple way)
-                    window.location.reload();
                 } catch (error) {
                     console.error('Failed to sync subscription', error);
                 }
