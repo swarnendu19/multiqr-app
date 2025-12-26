@@ -1,0 +1,569 @@
+"use client";
+
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth';
+import { useQRProjects } from '@/hooks/useQRProjects';
+import { useCanvas } from '@/hooks/useCanvas';
+import { QRProject, QRContent, QRDesign, QRType, defaultDesign as baseDefaultDesign, frameTemplates, FrameTemplate, DotStyle, CornerStyle } from '@/types/qr';
+import { generateQRDataURL } from '@/lib/qr-generator';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { CanvasToolbar } from '@/components/qr/CanvasToolbar';
+import { LayerPanel } from '@/components/qr/LayerPanel';
+import { Loader2, Save, ArrowLeft, Palette, FileText, Settings, Layers, Sparkles, Frame } from 'lucide-react';
+import { toast } from 'sonner';
+import { debounce } from '@/lib/debounce';
+
+const defaultDesign: QRDesign = {
+    ...baseDefaultDesign,
+    errorCorrection: 'Q', // Higher error correction by default for better logo support
+};
+
+export default function QREditor() {
+    const params = useParams();
+    const id = params?.id as string;
+    const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
+    const { getProject, updateProject } = useQRProjects();
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    const [project, setProject] = useState<QRProject | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [content, setContent] = useState<QRContent>({});
+    const [design, setDesign] = useState<QRDesign>(defaultDesign);
+    const [name, setName] = useState('');
+    const [activeTab, setActiveTab] = useState('content');
+
+    const canvasOptions = useRef({ width: 400, height: 400, backgroundColor: '#ffffff' }).current;
+
+    const {
+        canvas,
+        layers,
+        selectedLayerId,
+        updateQRCode,
+        updateFrame,
+        addLogo,
+        addCenterLogo,
+        addText,
+        addShape,
+        selectLayer,
+        deleteLayer,
+        toggleLayerVisibility,
+        toggleLayerLock,
+        moveLayer,
+        exportCanvas,
+        clearCanvas,
+        getCanvasJSON,
+    } = useCanvas(canvasRef, canvasOptions);
+
+    const handleSave = async () => {
+        if (!id) return;
+
+        // Capture data BEFORE state updates to avoid canvas disposal issues
+        canvas?.renderAll();
+        const canvasData = getCanvasJSON();
+        const thumbnail = exportCanvas('png', 0.5); // Low quality for thumbnail
+
+        setSaving(true);
+
+        await updateProject(id, {
+            name,
+            content,
+            design,
+            canvas_data: canvasData || undefined,
+            thumbnail_url: thumbnail || undefined
+        });
+        setSaving(false);
+        toast.success('Saved!');
+    };
+
+    const loadProject = useCallback(async () => {
+        if (!id) return;
+        setLoading(true);
+        const data = await getProject(id);
+        if (data) {
+            setProject(data);
+            setContent(data.content || {});
+            setDesign({ ...defaultDesign, ...data.design });
+            setName(data.name);
+        } else {
+            toast.error('Project not found');
+            router.push('/manage');
+        }
+        setLoading(false);
+    }, [id, getProject, router]);
+
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/login');
+            return;
+        }
+        if (id && user) loadProject();
+    }, [id, user, authLoading, loadProject, router]);
+
+    // Use ref to always have latest values for the debounced function
+    const contentRef = useRef(content);
+    const designRef = useRef(design);
+    const projectRef = useRef(project);
+    contentRef.current = content;
+    designRef.current = design;
+    projectRef.current = project;
+
+    // Stable debounced function that uses refs for latest values
+    // Stable debounced function that uses refs for latest values
+    const debouncedGenerateQR = useMemo(
+        () => debounce(async () => {
+            const currentProject = projectRef.current;
+            if (!currentProject) return;
+            try {
+                const dataUrl = await generateQRDataURL(
+                    currentProject.qr_type as QRType,
+                    contentRef.current,
+                    designRef.current
+                );
+                if (dataUrl) {
+                    // toast.info(`Generated QR: ${dataUrl.length} chars`);
+                    await updateQRCode(dataUrl);
+
+                    // Update frame if exists
+                    if (designRef.current.frame.type !== 'none') {
+                        updateFrame(designRef.current.frame, designRef.current.size);
+                    } else {
+                        // Also call updateFrame with none to remove existing frame
+                        updateFrame(designRef.current.frame, designRef.current.size);
+                    }
+                } else {
+                    console.error('Generated empty data URL');
+                    toast.error('Failed to generate QR code data');
+                }
+            } catch (error) {
+                console.error('Error generating QR:', error);
+                toast.error('Error generating QR code');
+            }
+        }, 300),
+        [updateQRCode, updateFrame]
+    );
+
+    // Generate QR when canvas is ready or content/design changes
+    useEffect(() => {
+        console.log('QREditor useEffect triggered', {
+            canvasInitialized: !!canvas,
+            projectLoaded: !!project,
+            contentChanged: !!content,
+            designChanged: !!design
+        });
+
+        if (canvas && project) {
+            console.log('Calling debouncedGenerateQR');
+            debouncedGenerateQR();
+        } else {
+            console.log('Skipping generate: canvas or project missing');
+        }
+    }, [canvas, project, content, design, debouncedGenerateQR]);
+
+
+
+    const handleExport = (format: 'png' | 'jpeg' | 'svg') => {
+        const data = exportCanvas(format);
+        if (!data) return;
+
+        const link = document.createElement('a');
+        if (format === 'svg') {
+            const blob = new Blob([data], { type: 'image/svg+xml' });
+            link.href = URL.createObjectURL(blob);
+        } else {
+            link.href = data;
+        }
+        link.download = `${name || 'qr-code'}.${format}`;
+        link.click();
+        toast.success(`Downloaded as ${format.toUpperCase()}`);
+    };
+
+    if (authLoading || loading) {
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+        );
+    }
+
+    if (!project) return null;
+
+    return (
+        <div className="min-h-screen bg-background flex flex-col">
+            <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur">
+                <div className="flex h-14 items-center justify-between px-4">
+                    <div className="flex items-center gap-3">
+                        <Button variant="ghost" size="icon" onClick={() => router.push('/manage')}>
+                            <ArrowLeft className="h-5 w-5" />
+                        </Button>
+                        <Input value={name} onChange={(e) => setName(e.target.value)} className="max-w-[180px] h-9" placeholder="Project name" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm" onClick={handleSave} disabled={saving}>
+                            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                            <span className="ml-1.5 hidden sm:inline">Save</span>
+                        </Button>
+                        <Button size="sm" onClick={async () => { await handleSave(); router.push('/manage'); }}>Done</Button>
+                    </div>
+                </div>
+            </header>
+
+            <div className="flex-1 flex">
+                {/* Left: Controls */}
+                <aside className="w-80 border-r border-border bg-card flex flex-col">
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+                        <TabsList className="grid grid-cols-5 m-2">
+                            <TabsTrigger value="content"><FileText className="h-4 w-4" /></TabsTrigger>
+                            <TabsTrigger value="design"><Palette className="h-4 w-4" /></TabsTrigger>
+                            <TabsTrigger value="style"><Sparkles className="h-4 w-4" /></TabsTrigger>
+                            <TabsTrigger value="layers"><Layers className="h-4 w-4" /></TabsTrigger>
+                            <TabsTrigger value="frame"><Frame className="h-4 w-4" /></TabsTrigger>
+                        </TabsList>
+
+                        <div className="flex-1 overflow-auto p-3">
+                            <TabsContent value="content" className="mt-0 space-y-3">
+                                <ContentForm type={project.qr_type as QRType} content={content} onChange={setContent} />
+                            </TabsContent>
+                            <TabsContent value="design" className="mt-0 space-y-3">
+                                <DesignForm design={design} onChange={setDesign} />
+                            </TabsContent>
+                            <TabsContent value="style" className="mt-0 space-y-3">
+                                <StyleForm design={design} onChange={setDesign} />
+                            </TabsContent>
+                            <TabsContent value="layers" className="mt-0 h-full">
+                                <LayerPanel
+                                    layers={layers}
+                                    selectedLayerId={selectedLayerId}
+                                    onSelect={selectLayer}
+                                    onDelete={deleteLayer}
+                                    onToggleVisibility={toggleLayerVisibility}
+                                    onToggleLock={toggleLayerLock}
+                                    onMoveUp={(id) => moveLayer(id, 'up')}
+                                    onMoveDown={(id) => moveLayer(id, 'down')}
+                                />
+                            </TabsContent>
+                            <TabsContent value="frame" className="mt-0 space-y-3">
+                                <FrameForm design={design} onChange={setDesign} />
+                            </TabsContent>
+                        </div>
+                    </Tabs>
+                </aside>
+
+                {/* Center: Canvas */}
+                <main className="flex-1 flex flex-col bg-muted/30">
+                    <CanvasToolbar
+                        onAddLogo={addLogo}
+                        onAddCenterLogo={addCenterLogo}
+                        onAddText={() => addText('Your Text')}
+                        onAddShape={addShape}
+                        onClear={clearCanvas}
+                        onExport={handleExport}
+                    />
+                    <div className="flex-1 flex items-center justify-center p-8">
+                        <div className="bg-card rounded-xl shadow-soft border border-border p-4">
+                            <canvas ref={canvasRef} />
+                        </div>
+
+                    </div>
+                </main>
+            </div>
+        </div>
+    );
+}
+
+function ContentForm({ type, content, onChange }: { type: QRType; content: QRContent; onChange: (c: QRContent) => void }) {
+    if (type === 'url') return <div className="space-y-2"><Label>URL</Label><Input placeholder="https://example.com" value={content.url || ''} onChange={(e) => onChange({ ...content, url: e.target.value })} /></div>;
+    if (type === 'text') return <div className="space-y-2"><Label>Text</Label><textarea className="w-full min-h-[100px] px-3 py-2 rounded-lg border border-input bg-background text-sm" value={content.text || ''} onChange={(e) => onChange({ ...content, text: e.target.value })} /></div>;
+    if (type === 'wifi') return (
+        <div className="space-y-3">
+            <div className="space-y-2"><Label>Network Name</Label><Input value={content.wifi?.ssid || ''} onChange={(e) => onChange({ ...content, wifi: { ...content.wifi, ssid: e.target.value, password: content.wifi?.password || '', encryption: content.wifi?.encryption || 'WPA' } })} /></div>
+            <div className="space-y-2"><Label>Password</Label><Input type="password" value={content.wifi?.password || ''} onChange={(e) => onChange({ ...content, wifi: { ...content.wifi, ssid: content.wifi?.ssid || '', password: e.target.value, encryption: content.wifi?.encryption || 'WPA' } })} /></div>
+        </div>
+    );
+    if (type === 'vcard') return (
+        <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1"><Label className="text-xs">First Name</Label><Input value={content.vcard?.firstName || ''} onChange={(e) => onChange({ ...content, vcard: { ...content.vcard, firstName: e.target.value, lastName: content.vcard?.lastName || '' } })} /></div>
+                <div className="space-y-1"><Label className="text-xs">Last Name</Label><Input value={content.vcard?.lastName || ''} onChange={(e) => onChange({ ...content, vcard: { ...content.vcard, firstName: content.vcard?.firstName || '', lastName: e.target.value } })} /></div>
+            </div>
+            <div className="space-y-1"><Label className="text-xs">Phone</Label><Input value={content.vcard?.phone || ''} onChange={(e) => onChange({ ...content, vcard: { ...content.vcard, firstName: content.vcard?.firstName || '', lastName: content.vcard?.lastName || '', phone: e.target.value } })} /></div>
+            <div className="space-y-1"><Label className="text-xs">Email</Label><Input value={content.vcard?.email || ''} onChange={(e) => onChange({ ...content, vcard: { ...content.vcard, firstName: content.vcard?.firstName || '', lastName: content.vcard?.lastName || '', email: e.target.value } })} /></div>
+        </div>
+    );
+    return null;
+}
+
+function DesignForm({ design, onChange }: { design: QRDesign; onChange: (d: QRDesign) => void }) {
+    return (
+        <div className="space-y-4">
+            <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                    <Label>Use Gradient</Label>
+                    <Switch
+                        checked={design.gradient.enabled}
+                        onCheckedChange={(checked) => onChange({
+                            ...design,
+                            gradient: { ...design.gradient, enabled: checked }
+                        })}
+                    />
+                </div>
+            </div>
+
+            {design.gradient.enabled ? (
+                <>
+                    <div className="space-y-2">
+                        <Label>Gradient Type</Label>
+                        <Select
+                            value={design.gradient.type}
+                            onValueChange={(v: 'linear' | 'radial') => onChange({
+                                ...design,
+                                gradient: { ...design.gradient, type: v }
+                            })}
+                        >
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="linear">Linear</SelectItem>
+                                <SelectItem value="radial">Radial</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Color 1</Label>
+                        <div className="flex gap-2">
+                            <input type="color" value={design.gradient.color1} onChange={(e) => onChange({ ...design, gradient: { ...design.gradient, color1: e.target.value } })} className="w-10 h-10 rounded border cursor-pointer" />
+                            <Input value={design.gradient.color1} onChange={(e) => onChange({ ...design, gradient: { ...design.gradient, color1: e.target.value } })} />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Color 2</Label>
+                        <div className="flex gap-2">
+                            <input type="color" value={design.gradient.color2} onChange={(e) => onChange({ ...design, gradient: { ...design.gradient, color2: e.target.value } })} className="w-10 h-10 rounded border cursor-pointer" />
+                            <Input value={design.gradient.color2} onChange={(e) => onChange({ ...design, gradient: { ...design.gradient, color2: e.target.value } })} />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Rotation: {design.gradient.rotation}°</Label>
+                        <input type="range" min="0" max="360" value={design.gradient.rotation} onChange={(e) => onChange({ ...design, gradient: { ...design.gradient, rotation: parseInt(e.target.value) } })} className="w-full" />
+                    </div>
+                </>
+            ) : (
+                <div className="space-y-2">
+                    <Label>Foreground Color</Label>
+                    <div className="flex gap-2">
+                        <input type="color" value={design.foregroundColor} onChange={(e) => onChange({ ...design, foregroundColor: e.target.value })} className="w-10 h-10 rounded border cursor-pointer" />
+                        <Input value={design.foregroundColor} onChange={(e) => onChange({ ...design, foregroundColor: e.target.value })} />
+                    </div>
+                </div>
+            )}
+
+            <div className="space-y-2">
+                <Label>Background Color</Label>
+                <div className="flex gap-2">
+                    <input type="color" value={design.backgroundColor} onChange={(e) => onChange({ ...design, backgroundColor: e.target.value })} className="w-10 h-10 rounded border cursor-pointer" />
+                    <Input value={design.backgroundColor} onChange={(e) => onChange({ ...design, backgroundColor: e.target.value })} />
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <Label>Error Correction</Label>
+                <Select value={design.errorCorrection} onValueChange={(v: 'L' | 'M' | 'Q' | 'H') => onChange({ ...design, errorCorrection: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="L">Low (7%)</SelectItem>
+                        <SelectItem value="M">Medium (15%)</SelectItem>
+                        <SelectItem value="Q">Quartile (25%)</SelectItem>
+                        <SelectItem value="H">High (30%)</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div className="space-y-2">
+                <Label>Size: {design.size}px</Label>
+                <input type="range" min="128" max="512" value={design.size} onChange={(e) => onChange({ ...design, size: parseInt(e.target.value) })} className="w-full" />
+            </div>
+        </div>
+    );
+}
+
+function StyleForm({ design, onChange }: { design: QRDesign; onChange: (d: QRDesign) => void }) {
+    const dotStyles: { value: DotStyle; label: string }[] = [
+        { value: 'square', label: 'Square' },
+        { value: 'dots', label: 'Dots' },
+        { value: 'rounded', label: 'Rounded' },
+        { value: 'classy', label: 'Classy' },
+        { value: 'classy-rounded', label: 'Classy Rounded' },
+    ];
+
+    const cornerStyles: { value: CornerStyle; label: string }[] = [
+        { value: 'square', label: 'Square' },
+        { value: 'rounded', label: 'Rounded' },
+        { value: 'circle', label: 'Circle' },
+        { value: 'classy', label: 'Classy' },
+        { value: 'classy-rounded', label: 'Classy Rounded' },
+    ];
+
+    return (
+        <div className="space-y-4">
+            <div className="space-y-2">
+                <Label>Dot Style</Label>
+                <Select value={design.dotStyle} onValueChange={(v: DotStyle) => onChange({ ...design, dotStyle: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        {dotStyles.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div className="space-y-2">
+                <Label>Corner Style</Label>
+                <Select value={design.cornerStyle} onValueChange={(v: CornerStyle) => onChange({ ...design, cornerStyle: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        {cornerStyles.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div className="space-y-2">
+                <Label>Corner Dot Style</Label>
+                <Select value={design.cornerDotStyle} onValueChange={(v: CornerStyle) => onChange({ ...design, cornerDotStyle: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                        {cornerStyles.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            <div className="pt-4 border-t border-border">
+                <h4 className="text-sm font-medium mb-3">Style Preview</h4>
+                <div className="grid grid-cols-3 gap-2">
+                    {dotStyles.slice(0, 3).map(style => (
+                        <button
+                            key={style.value}
+                            onClick={() => onChange({ ...design, dotStyle: style.value })}
+                            className={`p-3 rounded-lg border-2 transition-all ${design.dotStyle === style.value ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50'}`}
+                        >
+                            <div className="aspect-square bg-foreground rounded-sm" style={{
+                                borderRadius: style.value === 'dots' ? '50%' : style.value === 'rounded' ? '4px' : '0'
+                            }} />
+                            <span className="text-xs mt-1 block">{style.label}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function FrameForm({ design, onChange }: { design: QRDesign; onChange: (d: QRDesign) => void }) {
+    return (
+        <div className="space-y-4">
+            <div className="space-y-2">
+                <Label>Frame Template</Label>
+                <div className="grid grid-cols-2 gap-2">
+                    {frameTemplates.map((frame) => (
+                        <button
+                            key={frame.id}
+                            onClick={() => onChange({ ...design, frame })}
+                            className={`p-3 rounded-lg border-2 transition-all text-left ${design.frame.id === frame.id ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50'}`}
+                        >
+                            <FramePreview frame={frame} />
+                            <span className="text-xs mt-2 block font-medium">{frame.name}</span>
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {design.frame.type === 'label' || design.frame.type === 'banner' ? (
+                <>
+                    <div className="space-y-2">
+                        <Label>Label Text</Label>
+                        <Input
+                            value={design.frame.labelText || ''}
+                            onChange={(e) => onChange({
+                                ...design,
+                                frame: { ...design.frame, labelText: e.target.value }
+                            })}
+                            placeholder="SCAN ME"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Frame Color</Label>
+                        <div className="flex gap-2">
+                            <input
+                                type="color"
+                                value={design.frame.color || '#1a365d'}
+                                onChange={(e) => onChange({
+                                    ...design,
+                                    frame: { ...design.frame, color: e.target.value }
+                                })}
+                                className="w-10 h-10 rounded border cursor-pointer"
+                            />
+                            <Input
+                                value={design.frame.color || '#1a365d'}
+                                onChange={(e) => onChange({
+                                    ...design,
+                                    frame: { ...design.frame, color: e.target.value }
+                                })}
+                            />
+                        </div>
+                    </div>
+                </>
+            ) : null}
+        </div>
+    );
+}
+
+function FramePreview({ frame }: { frame: FrameTemplate }) {
+    if (frame.type === 'none') {
+        return <div className="aspect-square bg-muted rounded flex items-center justify-center text-muted-foreground text-xs">No frame</div>;
+    }
+
+    if (frame.type === 'simple') {
+        return (
+            <div className="aspect-square border-2 border-foreground rounded flex items-center justify-center">
+                <div className="w-3/4 h-3/4 bg-foreground/20 rounded-sm" />
+            </div>
+        );
+    }
+
+    if (frame.type === 'rounded') {
+        return (
+            <div className="aspect-square border-2 border-foreground rounded-xl flex items-center justify-center">
+                <div className="w-3/4 h-3/4 bg-foreground/20 rounded-sm" />
+            </div>
+        );
+    }
+
+    if (frame.type === 'label') {
+        return (
+            <div className="aspect-square flex flex-col">
+                {frame.labelPosition === 'top' && <div className="text-[6px] text-center bg-foreground text-background rounded-t py-0.5">SCAN</div>}
+                <div className="flex-1 border-2 border-foreground border-t-0 border-b-0 flex items-center justify-center">
+                    <div className="w-3/4 h-3/4 bg-foreground/20 rounded-sm" />
+                </div>
+                {frame.labelPosition === 'bottom' && <div className="text-[6px] text-center bg-foreground text-background rounded-b py-0.5">SCAN</div>}
+            </div>
+        );
+    }
+
+    if (frame.type === 'banner') {
+        return (
+            <div className="aspect-square flex flex-col">
+                <div className="flex-1 border-2 border-foreground rounded-t flex items-center justify-center">
+                    <div className="w-3/4 h-3/4 bg-foreground/20 rounded-sm" />
+                </div>
+                <div className="text-[5px] text-center bg-foreground text-background rounded-b py-1">SCAN TO VISIT</div>
+            </div>
+        );
+    }
+
+    return null;
+}

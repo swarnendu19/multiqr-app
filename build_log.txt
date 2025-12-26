@@ -1,0 +1,27 @@
+
+> qr-platform-next@0.1.0 build
+> next build
+
+   ▲ Next.js 14.1.0
+
+   Creating an optimized production build ...
+Failed to compile.
+
+./src/hooks/useCanvas.ts
+Module not found: Can't resolve 'fabric'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/app/qrcodes/[id]/edit/page.tsx
+
+./src/components/ui/sonner.tsx
+Module not found: Can't resolve 'next-themes'
+
+https://nextjs.org/docs/messages/module-not-found
+
+Import trace for requested module:
+./src/app/layout.tsx
+
+
+> Build failed because of webpack errors

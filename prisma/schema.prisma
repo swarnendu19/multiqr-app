@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String      @id @default(uuid())
+  email     String      @unique
+  password  String
+  full_name String?
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+  stripe_customer_id String?
+  subscription_status String?
+  projects  QRProject[]
+
+  @@map("users")
+}
+
+model QRProject {
+  id            String   @id @default(uuid())
+  user_id       String
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  name          String
+  qr_type       String
+  content       String
+  design        String
+  canvas_data   String?
+  thumbnail_url String?
+  scan_count    Int      @default(0)
+  short_code    String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  scans         QRScan[]
+
+  @@map("qr_projects")
+}
+
+model QRScan {
+  id            String    @id @default(uuid())
+  qr_project_id String
+  project       QRProject @relation(fields: [qr_project_id], references: [id], onDelete: Cascade)
+  scanned_at    DateTime  @default(now())
+  device_type   String?
+  browser       String?
+  city          String?
+  country       String?
+  ip_hash       String?
+  referrer      String?
+  user_agent    String?
+
+  @@map("qr_scans")
+}
