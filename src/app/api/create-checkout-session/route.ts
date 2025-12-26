@@ -32,8 +32,8 @@ export async function POST(request: Request) {
             customer: customerId,
             line_items: [{ price: priceId, quantity: 1 }],
             mode: 'subscription',
-            success_url: `http://localhost:5173/manage?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `http://localhost:5173/pricing`,
+            success_url: `https://multiqr-app.vercel.app/manage?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `https://multiqr-app.vercel.app/pricing`,
             metadata: { userId: user.id },
         });
 

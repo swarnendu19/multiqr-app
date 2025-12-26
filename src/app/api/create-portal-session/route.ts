@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
         const session = await stripe.billingPortal.sessions.create({
             customer: user.stripe_customer_id,
-            return_url: `http://localhost:5173/manage`,
+            return_url: `https://multiqr-app.vercel.app/manage`,
         });
 
         return NextResponse.json({ url: session.url });
