@@ -72,7 +72,7 @@ export default function Index() {
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                             <Button
-                                variant="default"
+                                variant="hero"
                                 size="lg"
                                 className="h-12 px-8 text-lg"
                                 onClick={() => router.push(user ? '/qrcodes/new' : '/register')}
