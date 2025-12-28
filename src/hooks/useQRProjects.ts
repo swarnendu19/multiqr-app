@@ -35,6 +35,7 @@ export function useQRProjects() {
         design: (typeof project.design === 'string' ? JSON.parse(project.design) : project.design) as unknown as QRDesign,
         canvas_data: project.canvas_data ? (typeof project.canvas_data === 'string' ? JSON.parse(project.canvas_data) : project.canvas_data) : undefined,
         thumbnail_url: project.thumbnail_url || undefined,
+        short_code: project.short_code || undefined,
         created_at: project.created_at || new Date().toISOString(),
         updated_at: project.updated_at || new Date().toISOString(),
       }));
@@ -212,6 +213,7 @@ export function useQRProjects() {
         design: (typeof data.design === 'string' ? JSON.parse(data.design) : data.design) as unknown as QRDesign,
         canvas_data: data.canvas_data ? (typeof data.canvas_data === 'string' ? JSON.parse(data.canvas_data) : data.canvas_data) : undefined,
         thumbnail_url: data.thumbnail_url || undefined,
+        short_code: data.short_code || undefined,
         created_at: data.created_at || new Date().toISOString(),
         updated_at: data.updated_at || new Date().toISOString(),
       };

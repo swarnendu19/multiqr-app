@@ -1,26 +1,32 @@
-import QRCodeStyling, { 
-  DotType, 
-  CornerSquareType, 
+import QRCodeStyling, {
+  DotType,
+  CornerSquareType,
   CornerDotType,
   GradientType
 } from 'qr-code-styling';
 import { QRContent, QRDesign, QRType, DotStyle, CornerStyle } from '@/types/qr';
 
-export function generateQRContent(type: QRType, content: QRContent): string {
+import { APP_URL } from './config';
+
+export function generateQRContent(type: QRType, content: QRContent, shortCode?: string): string {
+  if (shortCode) {
+    return `${APP_URL}/s/${shortCode}`;
+  }
+
   switch (type) {
     case 'url':
       return content.url || 'https://example.com';
-    
+
     case 'text':
       return content.text || 'Hello World';
-    
+
     case 'wifi':
       if (content.wifi) {
         const { ssid, password, encryption, hidden } = content.wifi;
         return `WIFI:T:${encryption};S:${ssid};P:${password};H:${hidden ? 'true' : 'false'};;`;
       }
       return 'WIFI:T:WPA;S:Network;P:password;;';
-    
+
     case 'vcard':
       if (content.vcard) {
         const { firstName, lastName, phone, email, website, company, title } = content.vcard;
@@ -39,7 +45,7 @@ export function generateQRContent(type: QRType, content: QRContent): string {
         return lines.join('\n');
       }
       return 'BEGIN:VCARD\nVERSION:3.0\nFN:John Doe\nEND:VCARD';
-    
+
     default:
       return 'https://example.com';
   }
@@ -81,10 +87,11 @@ function mapCornerDotStyle(style: CornerStyle): CornerDotType {
 export function createQRCodeStyling(
   type: QRType,
   content: QRContent,
-  design: QRDesign
+  design: QRDesign,
+  shortCode?: string
 ): QRCodeStyling {
-  const qrContent = generateQRContent(type, content);
-  
+  const qrContent = generateQRContent(type, content, shortCode);
+
   const dotsOptions: {
     type: DotType;
     color?: string;
@@ -138,14 +145,15 @@ export function createQRCodeStyling(
 export async function generateQRDataURL(
   type: QRType,
   content: QRContent,
-  design: QRDesign
+  design: QRDesign,
+  shortCode?: string
 ): Promise<string> {
   try {
-    const qrCode = createQRCodeStyling(type, content, design);
+    const qrCode = createQRCodeStyling(type, content, design, shortCode);
     const rawData = await qrCode.getRawData('png');
-    
+
     if (!rawData) return '';
-    
+
     // Handle both Blob and Buffer types
     let blob: Blob;
     if (rawData instanceof Blob) {
@@ -155,7 +163,7 @@ export async function generateQRDataURL(
       const uint8Array = new Uint8Array(rawData);
       blob = new Blob([uint8Array]);
     }
-    
+
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
@@ -170,14 +178,15 @@ export async function generateQRDataURL(
 export async function generateQRSVG(
   type: QRType,
   content: QRContent,
-  design: QRDesign
+  design: QRDesign,
+  shortCode?: string
 ): Promise<string> {
   try {
-    const qrCode = createQRCodeStyling(type, content, design);
+    const qrCode = createQRCodeStyling(type, content, design, shortCode);
     const rawData = await qrCode.getRawData('svg');
-    
+
     if (!rawData) return '';
-    
+
     // Handle both Blob and Buffer types
     if (rawData instanceof Blob) {
       return await rawData.text();

@@ -105,7 +105,8 @@ function ManageContent() {
             const dataUrl = await generateQRDataURL(
                 project.qr_type as QRType,
                 project.content,
-                project.design
+                project.design,
+                project.short_code || undefined
             );
             setDownloadUrl(dataUrl);
         }
@@ -328,7 +329,7 @@ function ProjectCard({
         if (project.thumbnail_url) {
             setPreviewUrl(project.thumbnail_url);
         } else {
-            generateQRDataURL(project.qr_type as QRType, project.content, project.design).then(
+            generateQRDataURL(project.qr_type as QRType, project.content, project.design, project.short_code || undefined).then(
                 setPreviewUrl
             );
         }

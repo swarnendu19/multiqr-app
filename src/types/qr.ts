@@ -61,6 +61,7 @@ export interface QRProject {
   design: QRDesign;
   canvas_data?: object;
   thumbnail_url?: string;
+  short_code?: string;
   created_at: string;
   updated_at: string;
 }

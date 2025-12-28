@@ -115,7 +115,8 @@ export default function QREditor() {
                 const dataUrl = await generateQRDataURL(
                     project.qr_type as QRType,
                     content,
-                    design
+                    design,
+                    project.short_code || undefined
                 );
 
                 if (dataUrl) {

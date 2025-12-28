@@ -39,8 +39,9 @@ export async function POST(request: Request) {
             }
         }
 
+        const short_code = Math.random().toString(36).substring(2, 8);
         const project = await prisma.qRProject.create({
-            data: { ...body, user_id: userId },
+            data: { ...body, user_id: userId, short_code },
         });
         return NextResponse.json(project);
     } catch (error: any) {
