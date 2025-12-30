@@ -15,7 +15,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { QrCode, User, Settings, LogOut, Plus, CreditCard } from 'lucide-react';
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isProUser } = useAuth();
   const router = useRouter();
 
   const handleSignOut = async () => {
@@ -67,7 +67,9 @@ export function Header() {
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="px-3 py-2">
                     <p className="text-sm font-medium">{user.email}</p>
-                    <p className="text-xs text-muted-foreground">Free Plan</p>
+                    <p className="text-xs text-muted-foreground">
+                      {isProUser ? 'Pro Plan' : 'Free Plan'}
+                    </p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => router.push('/manage')}>

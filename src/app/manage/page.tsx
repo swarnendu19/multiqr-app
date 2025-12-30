@@ -38,6 +38,7 @@ import {
 import { generateQRDataURL } from '@/lib/qr-generator';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { UpgradeModal } from '@/components/ui/UpgradeModal';
 
 const typeIcons: Record<QRType, React.ComponentType<{ className?: string }>> = {
     url: Link,
@@ -51,12 +52,15 @@ import { API_URL } from '@/lib/config';
 
 function ManageContent() {
     const router = useRouter();
-    const { user, updateUser } = useAuth();
+    const { user, updateUser, isProUser } = useAuth();
     const searchParams = useSearchParams();
     const { projects, loading, deleteProject, duplicateProject } = useQRProjects();
     const [search, setSearch] = useState('');
     const [downloadModal, setDownloadModal] = useState<QRProject | null>(null);
     const [downloadUrl, setDownloadUrl] = useState('');
+    const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+    const [upgradeModalTitle, setUpgradeModalTitle] = useState("Upgrade to Pro");
+    const [upgradeModalDesc, setUpgradeModalDesc] = useState("This feature is available exclusively to Pro plan subscribers.");
 
     // Check subscription status if returning from Stripe
     useEffect(() => {
@@ -112,8 +116,25 @@ function ManageContent() {
         }
     };
 
+    const handleCreateNew = () => {
+        if (!isProUser && projects.length >= 5) {
+            setUpgradeModalTitle("Limit Reached");
+            setUpgradeModalDesc("Free plan includes up to 5 QR codes. Upgrade to Pro for unlimited QR codes.");
+            setUpgradeModalOpen(true);
+            return;
+        }
+        router.push('/qrcodes/new');
+    };
+
     const handleDownload = async (format: 'png' | 'jpeg' | 'svg') => {
         if (!downloadModal || !downloadUrl) return;
+
+        if ((format === 'jpeg' || format === 'svg') && !isProUser) {
+            setUpgradeModalTitle("Pro Feature");
+            setUpgradeModalDesc("JPEG and SVG exports are available exclusively to Pro plan subscribers.");
+            setUpgradeModalOpen(true);
+            return;
+        }
 
         if (format === 'svg') {
             toast.info('For SVG with frames, please open the Editor');
@@ -160,6 +181,16 @@ function ManageContent() {
         }
     };
 
+    const handleDuplicate = (project: QRProject) => {
+        if (!isProUser && projects.length >= 5) {
+            setUpgradeModalTitle("Limit Reached");
+            setUpgradeModalDesc("Free plan includes up to 5 QR codes. Upgrade to Pro for unlimited QR codes.");
+            setUpgradeModalOpen(true);
+            return;
+        }
+        duplicateProject(project);
+    };
+
     const filteredProjects = projects.filter((p) =>
         p.name.toLowerCase().includes(search.toLowerCase())
     );
@@ -174,7 +205,7 @@ function ManageContent() {
                         Manage and organize your QR code projects
                     </p>
                 </div>
-                <Button onClick={() => router.push('/qrcodes/new')}>
+                <Button onClick={handleCreateNew}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create New
                 </Button>
@@ -205,7 +236,7 @@ function ManageContent() {
                     <p className="text-muted-foreground mb-6">
                         Create your first QR code to get started
                     </p>
-                    <Button onClick={() => router.push('/qrcodes/new')}>
+                    <Button onClick={handleCreateNew}>
                         <Plus className="h-4 w-4 mr-2" />
                         Create QR Code
                     </Button>
@@ -218,7 +249,7 @@ function ManageContent() {
                             project={project}
                             onEdit={() => router.push(`/qrcodes/${project.id}/edit`)}
                             onDownload={() => openDownloadModal(project)}
-                            onDuplicate={() => duplicateProject(project)}
+                            onDuplicate={() => handleDuplicate(project)}
                             onDelete={() => handleDelete(project)}
                         />
                     ))}
@@ -294,6 +325,13 @@ function ManageContent() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <UpgradeModal
+                open={upgradeModalOpen}
+                onOpenChange={setUpgradeModalOpen}
+                title={upgradeModalTitle}
+                description={upgradeModalDesc}
+            />
         </div>
     );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/lib/auth';
 import { useQRProjects } from '@/hooks/useQRProjects';
@@ -8,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, TrendingUp, TrendingDown, Smartphone, Globe, Clock, MapPin } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Loader2, TrendingUp, TrendingDown, Smartphone, Globe, Clock, MapPin, Lock, BarChart3 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
     AreaChart,
@@ -26,20 +28,28 @@ import {
     Legend
 } from 'recharts';
 import { API_URL } from '@/lib/config';
+import { UpgradeModal } from '@/components/ui/UpgradeModal';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 export default function Analytics() {
-    const { user } = useAuth();
+    const { user, isProUser } = useAuth();
     const { projects } = useQRProjects();
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null);
     const [selectedProject, setSelectedProject] = useState('all');
     const [timeRange, setTimeRange] = useState('30');
+    const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             if (!user) return;
+            // If not pro user, we don't fetch data, but we stop loading
+            if (!isProUser) {
+                setLoading(false);
+                return;
+            }
+
             setLoading(true);
             try {
                 const query = new URLSearchParams({
@@ -63,7 +73,36 @@ export default function Analytics() {
         };
 
         fetchData();
-    }, [user, selectedProject, timeRange]);
+    }, [user, selectedProject, timeRange, isProUser]);
+
+    if (!isProUser) {
+        return (
+            <DashboardLayout>
+                <div className="p-6 lg:p-8 h-full flex flex-col items-center justify-center min-h-[600px] text-center space-y-6">
+                    <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center">
+                        <BarChart3 className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                    <div className="max-w-md space-y-2">
+                        <h1 className="text-3xl font-bold">Analytics Locked</h1>
+                        <p className="text-muted-foreground text-lg">
+                            Upgrade to Pro to unlock detailed scan analytics, location data, and device insights.
+                        </p>
+                    </div>
+                    <Button size="lg" onClick={() => setUpgradeModalOpen(true)} className="gap-2">
+                        <Lock className="h-4 w-4" />
+                        Unlock Analytics
+                    </Button>
+
+                    <UpgradeModal
+                        open={upgradeModalOpen}
+                        onOpenChange={setUpgradeModalOpen}
+                        title="Unlock Analytics"
+                        description="Gain valuable insights into your QR code performance with our advanced analytics suite. Available exclusively on the Pro plan."
+                    />
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     if (loading && !data) {
         return (

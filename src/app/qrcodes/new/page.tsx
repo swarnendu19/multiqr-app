@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { QRType, qrTypeInfo } from '@/types/qr';
 import { Link, Type, Wifi, User, Loader2, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { UpgradeModal } from '@/components/ui/UpgradeModal';
 
 const icons: Record<QRType, React.ComponentType<{ className?: string }>> = {
     url: Link,
@@ -19,10 +20,11 @@ const icons: Record<QRType, React.ComponentType<{ className?: string }>> = {
 
 export default function QRTypeSelect() {
     const router = useRouter();
-    const { user, loading: authLoading } = useAuth();
-    const { createProject } = useQRProjects();
+    const { user, loading: authLoading, isProUser } = useAuth();
+    const { createProject, projects, loading: projectsLoading } = useQRProjects();
     const [selectedType, setSelectedType] = useState<QRType | null>(null);
     const [creating, setCreating] = useState(false);
+    const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
 
     useEffect(() => {
         if (!user && !authLoading) {
@@ -41,6 +43,11 @@ export default function QRTypeSelect() {
     if (!user) return null;
 
     const handleCreate = async () => {
+        if (!isProUser && projects.length >= 5) {
+            setUpgradeModalOpen(true);
+            return;
+        }
+
         if (!selectedType) {
             toast.error('Please select a QR code type');
             return;
@@ -118,7 +125,7 @@ export default function QRTypeSelect() {
                             size="lg"
                             variant="default"
                             onClick={handleCreate}
-                            disabled={!selectedType || creating}
+                            disabled={!selectedType || creating || projectsLoading}
                             className="min-w-[200px]"
                         >
                             {creating ? (
@@ -136,6 +143,13 @@ export default function QRTypeSelect() {
                     </div>
                 </div>
             </main>
+
+            <UpgradeModal
+                open={upgradeModalOpen}
+                onOpenChange={setUpgradeModalOpen}
+                title="Limit Reached"
+                description="Free plan includes up to 5 QR codes. Upgrade to Pro for unlimited QR codes."
+            />
         </div>
     );
 }

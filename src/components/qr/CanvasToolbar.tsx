@@ -8,6 +8,7 @@ import {
   Download,
   RotateCcw,
   CircleDot,
+  Lock,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -23,6 +24,8 @@ interface CanvasToolbarProps {
   onAddShape: (type: 'rect' | 'circle') => void;
   onClear: () => void;
   onExport: (format: 'png' | 'jpeg' | 'svg') => void;
+  isProUser?: boolean;
+  onUpgradeRequired?: (feature: string) => void;
 }
 
 export function CanvasToolbar({
@@ -32,6 +35,8 @@ export function CanvasToolbar({
   onAddShape,
   onClear,
   onExport,
+  isProUser = false,
+  onUpgradeRequired,
 }: CanvasToolbarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const centerLogoInputRef = useRef<HTMLInputElement>(null);
@@ -50,6 +55,22 @@ export function CanvasToolbar({
       onAddCenterLogo(file);
       e.target.value = '';
     }
+  };
+
+  const handleCenterLogoClick = () => {
+    if (!isProUser && onUpgradeRequired) {
+      onUpgradeRequired('Center Logo');
+      return;
+    }
+    centerLogoInputRef.current?.click();
+  };
+
+  const handleExportClick = (format: 'png' | 'jpeg' | 'svg') => {
+    if ((format === 'jpeg' || format === 'svg') && !isProUser && onUpgradeRequired) {
+      onUpgradeRequired(`${format.toUpperCase()} Export`);
+      return;
+    }
+    onExport(format);
   };
 
   return (
@@ -72,11 +93,12 @@ export function CanvasToolbar({
       <Button
         variant="outline"
         size="sm"
-        onClick={() => centerLogoInputRef.current?.click()}
-        className="gap-1.5"
+        onClick={handleCenterLogoClick}
+        className="gap-1.5 relative"
       >
         <CircleDot className="h-4 w-4" />
         Center Logo
+        {!isProUser && <Lock className="h-3 w-3 absolute -top-1 -right-1 text-amber-500" />}
       </Button>
 
       <Button
@@ -138,14 +160,16 @@ export function CanvasToolbar({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onExport('png')}>
+          <DropdownMenuItem onClick={() => handleExportClick('png')}>
             Download PNG
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onExport('jpeg')}>
+          <DropdownMenuItem onClick={() => handleExportClick('jpeg')} className="flex items-center justify-between">
             Download JPEG
+            {!isProUser && <Lock className="h-3 w-3 text-amber-500" />}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onExport('svg')}>
+          <DropdownMenuItem onClick={() => handleExportClick('svg')} className="flex items-center justify-between">
             Download SVG
+            {!isProUser && <Lock className="h-3 w-3 text-amber-500" />}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

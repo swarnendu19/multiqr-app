@@ -15,8 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { CanvasToolbar } from '@/components/qr/CanvasToolbar';
 import { LayerPanel } from '@/components/qr/LayerPanel';
-import { Loader2, Save, ArrowLeft, Palette, FileText, Settings, Layers, Sparkles, Frame } from 'lucide-react';
+import { Loader2, Save, ArrowLeft, Palette, FileText, Settings, Layers, Sparkles, Frame, Lock } from 'lucide-react';
 import { toast } from 'sonner';
+import { UpgradeModal } from '@/components/ui/UpgradeModal';
 
 const defaultDesign: QRDesign = {
     ...baseDefaultDesign,
@@ -27,7 +28,7 @@ export default function QREditor() {
     const params = useParams();
     const id = params?.id as string;
     const router = useRouter();
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, isProUser } = useAuth();
     const { getProject, updateProject } = useQRProjects();
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -38,6 +39,10 @@ export default function QREditor() {
     const [design, setDesign] = useState<QRDesign>(defaultDesign);
     const [name, setName] = useState('');
     const [activeTab, setActiveTab] = useState('content');
+
+    const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+    const [upgradeModalTitle, setUpgradeModalTitle] = useState("Upgrade to Pro");
+    const [upgradeModalDesc, setUpgradeModalDesc] = useState("This feature is available exclusively to Pro plan subscribers.");
 
     const canvasOptions = useRef({ width: 400, height: 400, backgroundColor: '#ffffff' }).current;
 
@@ -60,6 +65,12 @@ export default function QREditor() {
         clearCanvas,
         getCanvasJSON,
     } = useCanvas(canvasRef, canvasOptions, [loading]);
+
+    const handleUpgradeRequired = (feature: string) => {
+        setUpgradeModalTitle(`Unlock ${feature}`);
+        setUpgradeModalDesc(`${feature} is available exclusively to Pro plan subscribers. Upgrade now to access unlimited possibilities.`);
+        setUpgradeModalOpen(true);
+    };
 
     const handleSave = async () => {
         if (!id) return;
@@ -144,6 +155,11 @@ export default function QREditor() {
 
 
     const handleExport = (format: 'png' | 'jpeg' | 'svg') => {
+        if ((format === 'jpeg' || format === 'svg') && !isProUser) {
+            handleUpgradeRequired(`${format.toUpperCase()} Export`);
+            return;
+        }
+
         const data = exportCanvas(format);
         if (!data) return;
 
@@ -206,10 +222,20 @@ export default function QREditor() {
                                 <ContentForm type={project.qr_type as QRType} content={content} onChange={setContent} />
                             </TabsContent>
                             <TabsContent value="design" className="mt-0 space-y-3">
-                                <DesignForm design={design} onChange={setDesign} />
+                                <DesignForm
+                                    design={design}
+                                    onChange={setDesign}
+                                    isProUser={isProUser}
+                                    onUpgradeRequired={handleUpgradeRequired}
+                                />
                             </TabsContent>
                             <TabsContent value="style" className="mt-0 space-y-3">
-                                <StyleForm design={design} onChange={setDesign} />
+                                <StyleForm
+                                    design={design}
+                                    onChange={setDesign}
+                                    isProUser={isProUser}
+                                    onUpgradeRequired={handleUpgradeRequired}
+                                />
                             </TabsContent>
                             <TabsContent value="layers" className="mt-0 h-full">
                                 <LayerPanel
@@ -239,6 +265,8 @@ export default function QREditor() {
                         onAddShape={addShape}
                         onClear={clearCanvas}
                         onExport={handleExport}
+                        isProUser={isProUser}
+                        onUpgradeRequired={handleUpgradeRequired}
                     />
                     <div className="flex-1 flex items-center justify-center p-8">
                         <div className="bg-card rounded-xl shadow-soft border border-border p-4">
@@ -248,6 +276,13 @@ export default function QREditor() {
                     </div>
                 </main>
             </div>
+
+            <UpgradeModal
+                open={upgradeModalOpen}
+                onOpenChange={setUpgradeModalOpen}
+                title={upgradeModalTitle}
+                description={upgradeModalDesc}
+            />
         </div>
     );
 }
@@ -274,18 +309,39 @@ function ContentForm({ type, content, onChange }: { type: QRType; content: QRCon
     return null;
 }
 
-function DesignForm({ design, onChange }: { design: QRDesign; onChange: (d: QRDesign) => void }) {
+function DesignForm({
+    design,
+    onChange,
+    isProUser = false,
+    onUpgradeRequired
+}: {
+    design: QRDesign;
+    onChange: (d: QRDesign) => void;
+    isProUser?: boolean;
+    onUpgradeRequired?: (feature: string) => void;
+}) {
+    const handleGradientChange = (checked: boolean) => {
+        if (checked && !isProUser && onUpgradeRequired) {
+            onUpgradeRequired('Gradient Colors');
+            return;
+        }
+        onChange({
+            ...design,
+            gradient: { ...design.gradient, enabled: checked }
+        });
+    };
+
     return (
         <div className="space-y-4">
             <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                    <Label>Use Gradient</Label>
+                    <Label className="flex items-center gap-2">
+                        Use Gradient
+                        {!isProUser && <Lock className="h-3 w-3 text-amber-500" />}
+                    </Label>
                     <Switch
                         checked={design.gradient.enabled}
-                        onCheckedChange={(checked) => onChange({
-                            ...design,
-                            gradient: { ...design.gradient, enabled: checked }
-                        })}
+                        onCheckedChange={handleGradientChange}
                     />
                 </div>
             </div>
@@ -366,51 +422,102 @@ function DesignForm({ design, onChange }: { design: QRDesign; onChange: (d: QRDe
     );
 }
 
-function StyleForm({ design, onChange }: { design: QRDesign; onChange: (d: QRDesign) => void }) {
-    const dotStyles: { value: DotStyle; label: string }[] = [
+function StyleForm({
+    design,
+    onChange,
+    isProUser = false,
+    onUpgradeRequired
+}: {
+    design: QRDesign;
+    onChange: (d: QRDesign) => void;
+    isProUser?: boolean;
+    onUpgradeRequired?: (feature: string) => void;
+}) {
+    const dotStyles: { value: DotStyle; label: string; isPro?: boolean }[] = [
         { value: 'square', label: 'Square' },
-        { value: 'dots', label: 'Dots' },
-        { value: 'rounded', label: 'Rounded' },
-        { value: 'classy', label: 'Classy' },
-        { value: 'classy-rounded', label: 'Classy Rounded' },
+        { value: 'dots', label: 'Dots', isPro: true },
+        { value: 'rounded', label: 'Rounded', isPro: true },
+        { value: 'classy', label: 'Classy', isPro: true },
+        { value: 'classy-rounded', label: 'Classy Rounded', isPro: true },
     ];
 
-    const cornerStyles: { value: CornerStyle; label: string }[] = [
+    const cornerStyles: { value: CornerStyle; label: string; isPro?: boolean }[] = [
         { value: 'square', label: 'Square' },
-        { value: 'rounded', label: 'Rounded' },
-        { value: 'circle', label: 'Circle' },
-        { value: 'classy', label: 'Classy' },
-        { value: 'classy-rounded', label: 'Classy Rounded' },
+        { value: 'rounded', label: 'Rounded', isPro: true },
+        { value: 'circle', label: 'Circle', isPro: true },
+        { value: 'classy', label: 'Classy', isPro: true },
+        { value: 'classy-rounded', label: 'Classy Rounded', isPro: true },
     ];
+
+    const handleStyleChange = (key: keyof QRDesign, value: string, isPro: boolean = false) => {
+        if (isPro && !isProUser && onUpgradeRequired) {
+            onUpgradeRequired('Advanced Styling');
+            return;
+        }
+        onChange({ ...design, [key]: value });
+    };
 
     return (
         <div className="space-y-4">
             <div className="space-y-2">
                 <Label>Dot Style</Label>
-                <Select value={design.dotStyle} onValueChange={(v: DotStyle) => onChange({ ...design, dotStyle: v })}>
+                <Select
+                    value={design.dotStyle}
+                    onValueChange={(v: DotStyle) => {
+                        const style = dotStyles.find(s => s.value === v);
+                        handleStyleChange('dotStyle', v, style?.isPro);
+                    }}
+                >
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                        {dotStyles.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                        {dotStyles.map(s => (
+                            <SelectItem key={s.value} value={s.value} className="flex items-center justify-between">
+                                {s.label}
+                                {s.isPro && !isProUser && <Lock className="h-3 w-3 ml-2 text-amber-500 inline" />}
+                            </SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
             </div>
 
             <div className="space-y-2">
                 <Label>Corner Style</Label>
-                <Select value={design.cornerStyle} onValueChange={(v: CornerStyle) => onChange({ ...design, cornerStyle: v })}>
+                <Select
+                    value={design.cornerStyle}
+                    onValueChange={(v: CornerStyle) => {
+                        const style = cornerStyles.find(s => s.value === v);
+                        handleStyleChange('cornerStyle', v, style?.isPro);
+                    }}
+                >
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                        {cornerStyles.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                        {cornerStyles.map(s => (
+                            <SelectItem key={s.value} value={s.value}>
+                                {s.label}
+                                {s.isPro && !isProUser && <Lock className="h-3 w-3 ml-2 text-amber-500 inline" />}
+                            </SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
             </div>
 
             <div className="space-y-2">
                 <Label>Corner Dot Style</Label>
-                <Select value={design.cornerDotStyle} onValueChange={(v: CornerStyle) => onChange({ ...design, cornerDotStyle: v })}>
+                <Select
+                    value={design.cornerDotStyle}
+                    onValueChange={(v: CornerStyle) => {
+                        const style = cornerStyles.find(s => s.value === v);
+                        handleStyleChange('cornerDotStyle', v, style?.isPro);
+                    }}
+                >
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                        {cornerStyles.map(s => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
+                        {cornerStyles.map(s => (
+                            <SelectItem key={s.value} value={s.value}>
+                                {s.label}
+                                {s.isPro && !isProUser && <Lock className="h-3 w-3 ml-2 text-amber-500 inline" />}
+                            </SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
             </div>
@@ -421,13 +528,18 @@ function StyleForm({ design, onChange }: { design: QRDesign; onChange: (d: QRDes
                     {dotStyles.slice(0, 3).map(style => (
                         <button
                             key={style.value}
-                            onClick={() => onChange({ ...design, dotStyle: style.value })}
-                            className={`p-3 rounded-lg border-2 transition-all ${design.dotStyle === style.value ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50'}`}
+                            onClick={() => handleStyleChange('dotStyle', style.value, style.isPro)}
+                            className={`p-3 rounded-lg border-2 transition-all relative ${design.dotStyle === style.value ? 'border-secondary bg-secondary/10' : 'border-border hover:border-secondary/50'}`}
                         >
                             <div className="aspect-square bg-foreground rounded-sm" style={{
                                 borderRadius: style.value === 'dots' ? '50%' : style.value === 'rounded' ? '4px' : '0'
                             }} />
                             <span className="text-xs mt-1 block">{style.label}</span>
+                            {style.isPro && !isProUser && (
+                                <div className="absolute top-1 right-1">
+                                    <Lock className="h-3 w-3 text-amber-500" />
+                                </div>
+                            )}
                         </button>
                     ))}
                 </div>

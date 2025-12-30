@@ -1,3 +1,6 @@
+"use client";
+
+import { useAuth } from '@/lib/auth';
 import { NavLink } from '@/components/NavLink';
 import { cn } from '@/lib/utils';
 import {
@@ -20,6 +23,7 @@ const navItems = [
 ];
 
 export function DashboardSidebar() {
+  const { isProUser } = useAuth();
   return (
     <aside className="hidden lg:flex w-64 flex-col bg-sidebar border-r border-sidebar-border">
       <div className="p-6">
@@ -48,16 +52,27 @@ export function DashboardSidebar() {
       </nav>
 
       <div className="p-4 m-4 rounded-xl bg-gradient-to-br from-sidebar-primary/20 to-accent/20 border border-sidebar-border">
-        <h4 className="font-semibold text-sidebar-foreground mb-1">Upgrade to Pro</h4>
-        <p className="text-xs text-sidebar-foreground/70 mb-3">
-          Unlock unlimited exports and premium features
-        </p>
-        <NavLink
-          href="/pricing"
-          className="block w-full py-2 px-4 text-center text-sm font-medium rounded-lg bg-sidebar-primary text-sidebar-primary-foreground hover:opacity-90 transition-opacity"
-        >
-          View Plans
-        </NavLink>
+        {isProUser ? (
+          <>
+            <h4 className="font-semibold text-sidebar-foreground mb-1">Pro Plan Active</h4>
+            <p className="text-xs text-sidebar-foreground/70">
+              You have access to all premium features
+            </p>
+          </>
+        ) : (
+          <>
+            <h4 className="font-semibold text-sidebar-foreground mb-1">Upgrade to Pro</h4>
+            <p className="text-xs text-sidebar-foreground/70 mb-3">
+              Unlock unlimited exports and premium features
+            </p>
+            <NavLink
+              href="/pricing"
+              className="block w-full py-2 px-4 text-center text-sm font-medium rounded-lg bg-sidebar-primary text-sidebar-primary-foreground hover:opacity-90 transition-opacity"
+            >
+              View Plans
+            </NavLink>
+          </>
+        )}
       </div>
     </aside>
   );
