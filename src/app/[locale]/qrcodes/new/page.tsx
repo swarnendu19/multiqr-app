@@ -18,8 +18,11 @@ const icons: Record<QRType, React.ComponentType<{ className?: string }>> = {
     vcard: User,
 };
 
+import { useTranslations } from 'next-intl';
+
 export default function QRTypeSelect() {
     const router = useRouter();
+    const t = useTranslations('NewQR');
     const { user, loading: authLoading, isProUser } = useAuth();
     const { createProject, projects, loading: projectsLoading } = useQRProjects();
     const [selectedType, setSelectedType] = useState<QRType | null>(null);
@@ -49,7 +52,7 @@ export default function QRTypeSelect() {
         }
 
         if (!selectedType) {
-            toast.error('Please select a QR code type');
+            toast.error(t('selectType'));
             return;
         }
 
@@ -70,10 +73,10 @@ export default function QRTypeSelect() {
                 <div className="max-w-4xl mx-auto">
                     <div className="text-center mb-12">
                         <h1 className="text-3xl md:text-4xl font-bold mb-4">
-                            Create a New QR Code
+                            {t('title')}
                         </h1>
                         <p className="text-muted-foreground text-lg">
-                            Select the type of QR code you want to create
+                            {t('subtitle')}
                         </p>
                     </div>
 
@@ -131,11 +134,11 @@ export default function QRTypeSelect() {
                             {creating ? (
                                 <>
                                     <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                                    Creating...
+                                    {t('creating')}
                                 </>
                             ) : (
                                 <>
-                                    Continue
+                                    {t('continue')}
                                     <ArrowRight className="h-5 w-5 ml-2" />
                                 </>
                             )}
@@ -147,8 +150,8 @@ export default function QRTypeSelect() {
             <UpgradeModal
                 open={upgradeModalOpen}
                 onOpenChange={setUpgradeModalOpen}
-                title="Limit Reached"
-                description="Free plan includes up to 5 QR codes. Upgrade to Pro for unlimited QR codes."
+                title={t('limitTitle')}
+                description={t('limitDesc')}
             />
         </div>
     );

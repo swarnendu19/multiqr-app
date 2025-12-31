@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTheme } from 'next-themes';
+import { useTranslations } from 'next-intl';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +22,7 @@ import { toast } from 'sonner';
 
 export default function Settings() {
     const { theme, setTheme } = useTheme();
+    const t = useTranslations('Settings');
     const [emailNotifications, setEmailNotifications] = useState(true);
     const [securityAlerts, setSecurityAlerts] = useState(true);
     const [marketingEmails, setMarketingEmails] = useState(false);
@@ -28,7 +30,7 @@ export default function Settings() {
 
     const handleDeleteAccount = () => {
         // Logic to delete account would go here
-        toast.error('Account deletion is disabled in this demo');
+        toast.error(t('deleteDisabled'));
         setDeleteDialogOpen(false);
     };
 
@@ -36,9 +38,9 @@ export default function Settings() {
         <DashboardLayout>
             <div className="p-6 lg:p-8 max-w-4xl">
                 <div className="mb-8">
-                    <h1 className="text-2xl font-bold">Settings</h1>
+                    <h1 className="text-2xl font-bold">{t('title')}</h1>
                     <p className="text-muted-foreground">
-                        Manage your application preferences
+                        {t('subtitle')}
                     </p>
                 </div>
 
@@ -48,10 +50,10 @@ export default function Settings() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Sun className="h-5 w-5" />
-                                Appearance
+                                {t('appearance')}
                             </CardTitle>
                             <CardDescription>
-                                Customize the look and feel of the application
+                                {t('appearanceDesc')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -59,32 +61,32 @@ export default function Settings() {
                                 <button
                                     onClick={() => setTheme('light')}
                                     className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${theme === 'light'
-                                            ? 'border-primary bg-primary/5'
-                                            : 'border-muted hover:border-primary/50'
+                                        ? 'border-primary bg-primary/5'
+                                        : 'border-muted hover:border-primary/50'
                                         }`}
                                 >
                                     <Sun className="h-6 w-6 mb-2" />
-                                    <span className="text-sm font-medium">Light</span>
+                                    <span className="text-sm font-medium">{t('light')}</span>
                                 </button>
                                 <button
                                     onClick={() => setTheme('dark')}
                                     className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${theme === 'dark'
-                                            ? 'border-primary bg-primary/5'
-                                            : 'border-muted hover:border-primary/50'
+                                        ? 'border-primary bg-primary/5'
+                                        : 'border-muted hover:border-primary/50'
                                         }`}
                                 >
                                     <Moon className="h-6 w-6 mb-2" />
-                                    <span className="text-sm font-medium">Dark</span>
+                                    <span className="text-sm font-medium">{t('dark')}</span>
                                 </button>
                                 <button
                                     onClick={() => setTheme('system')}
                                     className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${theme === 'system'
-                                            ? 'border-primary bg-primary/5'
-                                            : 'border-muted hover:border-primary/50'
+                                        ? 'border-primary bg-primary/5'
+                                        : 'border-muted hover:border-primary/50'
                                         }`}
                                 >
                                     <Laptop className="h-6 w-6 mb-2" />
-                                    <span className="text-sm font-medium">System</span>
+                                    <span className="text-sm font-medium">{t('system')}</span>
                                 </button>
                             </div>
                         </CardContent>
@@ -95,18 +97,18 @@ export default function Settings() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Bell className="h-5 w-5" />
-                                Notifications
+                                {t('notifications')}
                             </CardTitle>
                             <CardDescription>
-                                Choose what you want to be notified about
+                                {t('notificationsDesc')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <Label className="text-base">Email Notifications</Label>
+                                    <Label className="text-base">{t('emailNotifications')}</Label>
                                     <p className="text-sm text-muted-foreground">
-                                        Receive emails about your account activity
+                                        {t('emailNotificationsDesc')}
                                     </p>
                                 </div>
                                 <Switch
@@ -116,9 +118,9 @@ export default function Settings() {
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <Label className="text-base">Security Alerts</Label>
+                                    <Label className="text-base">{t('securityAlerts')}</Label>
                                     <p className="text-sm text-muted-foreground">
-                                        Get notified about suspicious login attempts
+                                        {t('securityAlertsDesc')}
                                     </p>
                                 </div>
                                 <Switch
@@ -128,9 +130,9 @@ export default function Settings() {
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="space-y-0.5">
-                                    <Label className="text-base">Marketing Emails</Label>
+                                    <Label className="text-base">{t('marketingEmails')}</Label>
                                     <p className="text-sm text-muted-foreground">
-                                        Receive news, updates, and special offers
+                                        {t('marketingEmailsDesc')}
                                     </p>
                                 </div>
                                 <Switch
@@ -146,38 +148,37 @@ export default function Settings() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-destructive">
                                 <AlertTriangle className="h-5 w-5" />
-                                Danger Zone
+                                {t('dangerZone')}
                             </CardTitle>
                             <CardDescription>
-                                Irreversible actions for your account
+                                {t('dangerZoneDesc')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-center justify-between p-4 border border-destructive/20 rounded-lg bg-destructive/5">
                                 <div>
-                                    <h4 className="font-medium text-destructive">Delete Account</h4>
+                                    <h4 className="font-medium text-destructive">{t('deleteAccount')}</h4>
                                     <p className="text-sm text-muted-foreground">
-                                        Permanently delete your account and all data
+                                        {t('deleteAccountDesc')}
                                     </p>
                                 </div>
                                 <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                                     <DialogTrigger asChild>
-                                        <Button variant="destructive">Delete Account</Button>
+                                        <Button variant="destructive">{t('deleteAccount')}</Button>
                                     </DialogTrigger>
                                     <DialogContent>
                                         <DialogHeader>
-                                            <DialogTitle>Are you absolutely sure?</DialogTitle>
+                                            <DialogTitle>{t('deleteConfirmTitle')}</DialogTitle>
                                             <DialogDescription>
-                                                This action cannot be undone. This will permanently delete your
-                                                account and remove your data from our servers.
+                                                {t('deleteConfirmDesc')}
                                             </DialogDescription>
                                         </DialogHeader>
                                         <DialogFooter>
                                             <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                                                Cancel
+                                                {t('cancel')}
                                             </Button>
                                             <Button variant="destructive" onClick={handleDeleteAccount}>
-                                                Delete Account
+                                                {t('deleteAccount')}
                                             </Button>
                                         </DialogFooter>
                                     </DialogContent>

@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -11,25 +12,26 @@ import { Check, Sparkles, QrCode, BarChart3, Image as ImageIcon, Loader2 } from 
 // Stripe price ID for QR Pro monthly subscription
 const QR_PRO_PRICE_ID = 'price_1ShMmG2MF7toLiOySRvLR70S';
 
-const freePlanFeatures = [
-    'Up to 5 QR codes',
-    'Basic styling options',
-    'PNG export only',
-    'Standard support',
+const freePlanFeatures = (t: any) => [
+    t('freeFeature1'),
+    t('freeFeature2'),
+    t('freeFeature3'),
+    t('freeFeature4'),
 ];
 
-const proPlanFeatures = [
-    'Unlimited QR codes',
-    'All styling options',
-    'PNG, JPEG & SVG export',
-    'Center logo support',
-    'Scan analytics',
-    'Priority support',
+const proPlanFeatures = (t: any) => [
+    t('proFeature1'),
+    t('proFeature2'),
+    t('proFeature3'),
+    t('proFeature4'),
+    t('proFeature5'),
+    t('proFeature6'),
 ];
 
 export default function Pricing() {
     const router = useRouter();
     const { user, isProUser } = useAuth();
+    const t = useTranslations('Pricing');
     const [loading, setLoading] = useState(false);
 
     const handleSubscribe = async () => {
@@ -106,9 +108,9 @@ export default function Pricing() {
                     </div>
                     <div className="flex items-center gap-4">
                         {user ? (
-                            <Button variant="ghost" onClick={() => router.push('/manage')}>Dashboard</Button>
+                            <Button variant="ghost" onClick={() => router.push('/manage')}>{t('dashboard')}</Button>
                         ) : (
-                            <Button variant="ghost" onClick={() => router.push('/login')}>Login</Button>
+                            <Button variant="ghost" onClick={() => router.push('/login')}>{t('login')}</Button>
                         )}
                     </div>
                 </div>
@@ -119,13 +121,13 @@ export default function Pricing() {
                     <div className="text-center mb-16">
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 text-secondary mb-6 text-sm font-medium">
                             <Sparkles className="h-4 w-4" />
-                            Simple Pricing
+                            {t('title')}
                         </div>
                         <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                            Choose Your Plan
+                            {t('subtitle')}
                         </h1>
                         <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                            Start free and upgrade when you need more power
+                            {t('startFree')}
                         </p>
                     </div>
 
@@ -133,8 +135,8 @@ export default function Pricing() {
                         {/* Free Plan */}
                         <div className="rounded-2xl border border-border bg-card p-8">
                             <div className="mb-6">
-                                <h3 className="text-xl font-semibold mb-2">Free</h3>
-                                <p className="text-muted-foreground text-sm">Get started with basic features</p>
+                                <h3 className="text-xl font-semibold mb-2">{t('free')}</h3>
+                                <p className="text-muted-foreground text-sm">{t('freeDesc')}</p>
                             </div>
 
                             <div className="mb-6">
@@ -143,7 +145,7 @@ export default function Pricing() {
                             </div>
 
                             <ul className="space-y-3 mb-8">
-                                {freePlanFeatures.map((feature) => (
+                                {freePlanFeatures(t).map((feature) => (
                                     <li key={feature} className="flex items-center gap-3 text-sm">
                                         <Check className="h-4 w-4 text-secondary flex-shrink-0" />
                                         <span>{feature}</span>
@@ -156,22 +158,22 @@ export default function Pricing() {
                                 className="w-full"
                                 onClick={() => router.push(user ? '/manage' : '/register')}
                             >
-                                {user ? 'Go to Dashboard' : 'Get Started Free'}
+                                {user ? t('goToDashboard') : t('getStartedFree')}
                             </Button>
                         </div>
 
                         {/* Pro Plan */}
                         <div className="rounded-2xl border-2 border-primary bg-card p-8 relative">
                             <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full">
-                                Most Popular
+                                {t('mostPopular')}
                             </div>
 
                             <div className="mb-6">
                                 <h3 className="text-xl font-semibold mb-2 flex items-center gap-2">
-                                    Pro
+                                    {t('pro')}
                                     <Sparkles className="h-4 w-4 text-secondary" />
                                 </h3>
-                                <p className="text-muted-foreground text-sm">Everything you need to grow</p>
+                                <p className="text-muted-foreground text-sm">{t('proDesc')}</p>
                             </div>
 
                             <div className="mb-6">
@@ -180,7 +182,7 @@ export default function Pricing() {
                             </div>
 
                             <ul className="space-y-3 mb-8">
-                                {proPlanFeatures.map((feature) => (
+                                {proPlanFeatures(t).map((feature) => (
                                     <li key={feature} className="flex items-center gap-3 text-sm">
                                         <Check className="h-4 w-4 text-secondary flex-shrink-0" />
                                         <span>{feature}</span>
@@ -196,7 +198,7 @@ export default function Pricing() {
                                     disabled={loading}
                                 >
                                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                                    Manage Subscription
+                                    {t('manageSubscription')}
                                 </Button>
                             ) : (
                                 <Button
@@ -205,7 +207,7 @@ export default function Pricing() {
                                     disabled={loading}
                                 >
                                     {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-                                    Upgrade to Pro
+                                    {t('upgradeToPro')}
                                 </Button>
                             )}
                         </div>
@@ -213,30 +215,30 @@ export default function Pricing() {
 
                     {/* Features Comparison */}
                     <div className="mt-20 max-w-4xl mx-auto">
-                        <h2 className="text-2xl font-bold text-center mb-8">Pro Features Highlight</h2>
+                        <h2 className="text-2xl font-bold text-center mb-8">{t('proFeaturesHighlight')}</h2>
                         <div className="grid sm:grid-cols-3 gap-6">
                             <div className="p-6 rounded-xl bg-muted/30 text-center">
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary mx-auto mb-4">
                                     <QrCode className="h-6 w-6 text-primary-foreground" />
                                 </div>
-                                <h3 className="font-semibold mb-2">Unlimited QR Codes</h3>
-                                <p className="text-sm text-muted-foreground">Create as many QR codes as you need</p>
+                                <h3 className="font-semibold mb-2">{t('unlimitedQr')}</h3>
+                                <p className="text-sm text-muted-foreground">{t('unlimitedQrDesc')}</p>
                             </div>
 
                             <div className="p-6 rounded-xl bg-muted/30 text-center">
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary mx-auto mb-4">
                                     <ImageIcon className="h-6 w-6 text-primary-foreground" />
                                 </div>
-                                <h3 className="font-semibold mb-2">Center Logo</h3>
-                                <p className="text-sm text-muted-foreground">Add your brand logo to QR codes</p>
+                                <h3 className="font-semibold mb-2">{t('centerLogo')}</h3>
+                                <p className="text-sm text-muted-foreground">{t('centerLogoDesc')}</p>
                             </div>
 
                             <div className="p-6 rounded-xl bg-muted/30 text-center">
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-secondary mx-auto mb-4">
                                     <BarChart3 className="h-6 w-6 text-primary-foreground" />
                                 </div>
-                                <h3 className="font-semibold mb-2">Scan Analytics</h3>
-                                <p className="text-sm text-muted-foreground">Track scans with detailed insights</p>
+                                <h3 className="font-semibold mb-2">{t('scanAnalytics')}</h3>
+                                <p className="text-sm text-muted-foreground">{t('scanAnalyticsDesc')}</p>
                             </div>
                         </div>
                     </div>
@@ -251,7 +253,7 @@ export default function Pricing() {
                         <span className="font-semibold">MultiQR</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                        © {new Date().getFullYear()} MultiQR. All rights reserved.
+                        © {new Date().getFullYear()} MultiQR. {t('allRightsReserved')}
                     </p>
                 </div>
             </footer>

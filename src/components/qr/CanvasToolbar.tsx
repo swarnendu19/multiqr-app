@@ -16,6 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useTranslations } from 'next-intl';
 
 interface CanvasToolbarProps {
   onAddLogo: (file: File) => void;
@@ -38,6 +39,7 @@ export function CanvasToolbar({
   isProUser = false,
   onUpgradeRequired,
 }: CanvasToolbarProps) {
+  const t = useTranslations('CanvasToolbar');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const centerLogoInputRef = useRef<HTMLInputElement>(null);
 
@@ -59,7 +61,7 @@ export function CanvasToolbar({
 
   const handleCenterLogoClick = () => {
     if (!isProUser && onUpgradeRequired) {
-      onUpgradeRequired('Center Logo');
+      onUpgradeRequired(t('centerLogo'));
       return;
     }
     centerLogoInputRef.current?.click();
@@ -67,7 +69,7 @@ export function CanvasToolbar({
 
   const handleExportClick = (format: 'png' | 'jpeg' | 'svg') => {
     if ((format === 'jpeg' || format === 'svg') && !isProUser && onUpgradeRequired) {
-      onUpgradeRequired(`${format.toUpperCase()} Export`);
+      onUpgradeRequired(t('export'));
       return;
     }
     onExport(format);
@@ -97,7 +99,7 @@ export function CanvasToolbar({
         className="gap-1.5 relative"
       >
         <CircleDot className="h-4 w-4" />
-        Center Logo
+        {t('centerLogo')}
         {!isProUser && <Lock className="h-3 w-3 absolute -top-1 -right-1 text-amber-500" />}
       </Button>
 
@@ -108,7 +110,7 @@ export function CanvasToolbar({
         className="gap-1.5"
       >
         <ImageIcon className="h-4 w-4" />
-        Add Logo
+        {t('addLogo')}
       </Button>
 
       <Button
@@ -118,24 +120,24 @@ export function CanvasToolbar({
         className="gap-1.5"
       >
         <Type className="h-4 w-4" />
-        Add Text
+        {t('addText')}
       </Button>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="gap-1.5">
             <Square className="h-4 w-4" />
-            Add Shape
+            {t('addShape')}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuItem onClick={() => onAddShape('rect')}>
             <Square className="h-4 w-4 mr-2" />
-            Rectangle
+            {t('rectangle')}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onAddShape('circle')}>
             <Circle className="h-4 w-4 mr-2" />
-            Circle
+            {t('circle')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -149,26 +151,26 @@ export function CanvasToolbar({
         className="gap-1.5 text-muted-foreground hover:text-destructive"
       >
         <RotateCcw className="h-4 w-4" />
-        Clear
+        {t('clear')}
       </Button>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" size="sm" className="gap-1.5">
             <Download className="h-4 w-4" />
-            Export
+            {t('export')}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => handleExportClick('png')}>
-            Download PNG
+            {t('downloadPng')}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleExportClick('jpeg')} className="flex items-center justify-between">
-            Download JPEG
+            {t('downloadJpeg')}
             {!isProUser && <Lock className="h-3 w-3 text-amber-500" />}
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => handleExportClick('svg')} className="flex items-center justify-between">
-            Download SVG
+            {t('downloadSvg')}
             {!isProUser && <Lock className="h-3 w-3 text-amber-500" />}
           </DropdownMenuItem>
         </DropdownMenuContent>

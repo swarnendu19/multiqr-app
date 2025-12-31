@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { qrTemplates, QRTemplate, QRType, defaultDesign } from '@/types/qr';
 import { useQRProjects } from '@/hooks/useQRProjects';
@@ -34,16 +35,17 @@ const categoryIcons = {
     personal: Heart,
 };
 
-const categoryLabels = {
-    business: 'Business',
-    social: 'Social Media',
-    marketing: 'Marketing',
-    events: 'Events',
-    personal: 'Personal',
-};
+const categories = [
+    'business',
+    'social',
+    'marketing',
+    'events',
+    'personal',
+] as const;
 
 export default function Templates() {
     const router = useRouter();
+    const t = useTranslations('Templates');
     const { createProject, updateProject } = useQRProjects();
     const [search, setSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -99,9 +101,9 @@ export default function Templates() {
             <div className="p-6 lg:p-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-2xl font-bold">Templates</h1>
+                    <h1 className="text-2xl font-bold">{t('title')}</h1>
                     <p className="text-muted-foreground">
-                        Start with a professionally designed template
+                        {t('subtitle')}
                     </p>
                 </div>
 
@@ -110,7 +112,7 @@ export default function Templates() {
                     <div className="relative flex-1 max-w-md">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search templates..."
+                            placeholder={t('searchPlaceholder')}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="pl-10"
@@ -121,20 +123,20 @@ export default function Templates() {
                             <SelectValue placeholder="All Categories" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Categories</SelectItem>
-                            <SelectItem value="business">Business</SelectItem>
-                            <SelectItem value="social">Social Media</SelectItem>
-                            <SelectItem value="marketing">Marketing</SelectItem>
-                            <SelectItem value="events">Events</SelectItem>
-                            <SelectItem value="personal">Personal</SelectItem>
+                            <SelectItem value="all">{t('allCategories')}</SelectItem>
+                            <SelectItem value="business">{t('business')}</SelectItem>
+                            <SelectItem value="social">{t('social')}</SelectItem>
+                            <SelectItem value="marketing">{t('marketing')}</SelectItem>
+                            <SelectItem value="events">{t('events')}</SelectItem>
+                            <SelectItem value="personal">{t('personal')}</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
 
                 {/* Category Tags */}
                 <div className="flex flex-wrap gap-2 mb-6">
-                    {Object.entries(categoryLabels).map(([key, label]) => {
-                        const Icon = categoryIcons[key as keyof typeof categoryIcons];
+                    {categories.map((key) => {
+                        const Icon = categoryIcons[key];
                         const count = qrTemplates.filter(t => t.category === key).length;
                         return (
                             <Badge
@@ -144,7 +146,7 @@ export default function Templates() {
                                 onClick={() => setSelectedCategory(selectedCategory === key ? 'all' : key)}
                             >
                                 <Icon className="h-3.5 w-3.5 mr-1.5" />
-                                {label} ({count})
+                                {t(key)} ({count})
                             </Badge>
                         );
                     })}
@@ -182,7 +184,7 @@ export default function Templates() {
                                         <h3 className="font-medium">{template.name}</h3>
                                         <Badge variant="outline" className="text-xs">
                                             <CategoryIcon className="h-3 w-3 mr-1" />
-                                            {categoryLabels[template.category]}
+                                            {t(template.category)}
                                         </Badge>
                                     </div>
                                     <p className="text-sm text-muted-foreground line-clamp-2">
@@ -196,7 +198,7 @@ export default function Templates() {
 
                 {filteredTemplates.length === 0 && (
                     <div className="text-center py-16">
-                        <p className="text-muted-foreground">No templates found matching your criteria</p>
+                        <p className="text-muted-foreground">{t('noTemplates')}</p>
                     </div>
                 )}
             </div>
@@ -228,16 +230,16 @@ export default function Templates() {
 
                         {/* QR Type Selection */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">What type of QR code do you want to create?</label>
+                            <label className="text-sm font-medium">{t('qrTypeLabel')}</label>
                             <Select value={qrType} onValueChange={(v) => setQRType(v as QRType)}>
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="url">URL / Website</SelectItem>
-                                    <SelectItem value="text">Plain Text</SelectItem>
-                                    <SelectItem value="wifi">WiFi Network</SelectItem>
-                                    <SelectItem value="vcard">Contact Card (vCard)</SelectItem>
+                                    <SelectItem value="url">{t('url')}</SelectItem>
+                                    <SelectItem value="text">{t('text')}</SelectItem>
+                                    <SelectItem value="wifi">{t('wifi')}</SelectItem>
+                                    <SelectItem value="vcard">{t('vcard')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -245,16 +247,16 @@ export default function Templates() {
 
                     <div className="flex gap-3">
                         <Button variant="outline" className="flex-1" onClick={() => setSelectedTemplate(null)}>
-                            Cancel
+                            {t('cancel')}
                         </Button>
                         <Button className="flex-1" onClick={handleUseTemplate} disabled={creating}>
                             {creating ? (
                                 <>
                                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                    Creating...
+                                    {t('creating')}
                                 </>
                             ) : (
-                                'Create QR Code'
+                                t('createQr')
                             )}
                         </Button>
                     </div>

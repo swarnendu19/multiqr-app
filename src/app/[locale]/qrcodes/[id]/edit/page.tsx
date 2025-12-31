@@ -18,6 +18,7 @@ import { LayerPanel } from '@/components/qr/LayerPanel';
 import { Loader2, Save, ArrowLeft, Palette, FileText, Settings, Layers, Sparkles, Frame, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { UpgradeModal } from '@/components/ui/UpgradeModal';
+import { useTranslations } from 'next-intl';
 
 const defaultDesign: QRDesign = {
     ...baseDefaultDesign,
@@ -40,9 +41,10 @@ export default function QREditor() {
     const [name, setName] = useState('');
     const [activeTab, setActiveTab] = useState('content');
 
+    const t = useTranslations('Editor');
     const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-    const [upgradeModalTitle, setUpgradeModalTitle] = useState("Upgrade to Pro");
-    const [upgradeModalDesc, setUpgradeModalDesc] = useState("This feature is available exclusively to Pro plan subscribers.");
+    const [upgradeModalTitle, setUpgradeModalTitle] = useState(t('upgradeTitle'));
+    const [upgradeModalDesc, setUpgradeModalDesc] = useState(t('upgradeDesc'));
 
     const canvasOptions = useRef({ width: 400, height: 400, backgroundColor: '#ffffff' }).current;
 
@@ -67,8 +69,8 @@ export default function QREditor() {
     } = useCanvas(canvasRef, canvasOptions, [loading]);
 
     const handleUpgradeRequired = (feature: string) => {
-        setUpgradeModalTitle(`Unlock ${feature}`);
-        setUpgradeModalDesc(`${feature} is available exclusively to Pro plan subscribers. Upgrade now to access unlimited possibilities.`);
+        setUpgradeModalTitle(t('unlockFeature', { feature }));
+        setUpgradeModalDesc(t('unlockDesc', { feature }));
         setUpgradeModalOpen(true);
     };
 
@@ -90,7 +92,7 @@ export default function QREditor() {
             thumbnail_url: thumbnail || undefined
         });
         setSaving(false);
-        toast.success('Saved!');
+        toast.success(t('saved'));
     };
 
     const loadProject = useCallback(async () => {
@@ -103,7 +105,7 @@ export default function QREditor() {
             setDesign({ ...defaultDesign, ...data.design });
             setName(data.name);
         } else {
-            toast.error('Project not found');
+            toast.error(t('projectNotFound'));
             router.push('/manage');
         }
         setLoading(false);
@@ -142,7 +144,7 @@ export default function QREditor() {
                 }
             } catch (error) {
                 console.error('Error generating QR:', error);
-                toast.error('Error generating QR code');
+                toast.error(t('errorGenerating'));
             }
         };
 
@@ -156,7 +158,7 @@ export default function QREditor() {
 
     const handleExport = (format: 'png' | 'jpeg' | 'svg') => {
         if ((format === 'jpeg' || format === 'svg') && !isProUser) {
-            handleUpgradeRequired(`${format.toUpperCase()} Export`);
+            handleUpgradeRequired(t('exportFormat', { format: format.toUpperCase() }));
             return;
         }
 
@@ -172,7 +174,7 @@ export default function QREditor() {
         }
         link.download = `${name || 'qr-code'}.${format}`;
         link.click();
-        toast.success(`Downloaded as ${format.toUpperCase()}`);
+        toast.success(t('downloadedAs', { format: format.toUpperCase() }));
     };
 
     if (authLoading || loading) {
@@ -193,14 +195,14 @@ export default function QREditor() {
                         <Button variant="ghost" size="icon" onClick={() => router.push('/manage')}>
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
-                        <Input value={name} onChange={(e) => setName(e.target.value)} className="max-w-[180px] h-9" placeholder="Project name" />
+                        <Input value={name} onChange={(e) => setName(e.target.value)} className="max-w-[180px] h-9" placeholder={t('projectNamePlaceholder')} />
                     </div>
                     <div className="flex items-center gap-2">
                         <Button variant="outline" size="sm" onClick={handleSave} disabled={saving}>
                             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                            <span className="ml-1.5 hidden sm:inline">Save</span>
+                            <span className="ml-1.5 hidden sm:inline">{t('save')}</span>
                         </Button>
-                        <Button size="sm" onClick={async () => { await handleSave(); router.push('/manage'); }}>Done</Button>
+                        <Button size="sm" onClick={async () => { await handleSave(); router.push('/manage'); }}>{t('done')}</Button>
                     </div>
                 </div>
             </header>
@@ -288,22 +290,23 @@ export default function QREditor() {
 }
 
 function ContentForm({ type, content, onChange }: { type: QRType; content: QRContent; onChange: (c: QRContent) => void }) {
-    if (type === 'url') return <div className="space-y-2"><Label>URL</Label><Input placeholder="https://example.com" value={content.url || ''} onChange={(e) => onChange({ ...content, url: e.target.value })} /></div>;
-    if (type === 'text') return <div className="space-y-2"><Label>Text</Label><textarea className="w-full min-h-[100px] px-3 py-2 rounded-lg border border-input bg-background text-sm" value={content.text || ''} onChange={(e) => onChange({ ...content, text: e.target.value })} /></div>;
+    const t = useTranslations('Editor');
+    if (type === 'url') return <div className="space-y-2"><Label>{t('content.url')}</Label><Input placeholder="https://example.com" value={content.url || ''} onChange={(e) => onChange({ ...content, url: e.target.value })} /></div>;
+    if (type === 'text') return <div className="space-y-2"><Label>{t('content.text')}</Label><textarea className="w-full min-h-[100px] px-3 py-2 rounded-lg border border-input bg-background text-sm" value={content.text || ''} onChange={(e) => onChange({ ...content, text: e.target.value })} /></div>;
     if (type === 'wifi') return (
         <div className="space-y-3">
-            <div className="space-y-2"><Label>Network Name</Label><Input value={content.wifi?.ssid || ''} onChange={(e) => onChange({ ...content, wifi: { ...content.wifi, ssid: e.target.value, password: content.wifi?.password || '', encryption: content.wifi?.encryption || 'WPA' } })} /></div>
-            <div className="space-y-2"><Label>Password</Label><Input type="password" value={content.wifi?.password || ''} onChange={(e) => onChange({ ...content, wifi: { ...content.wifi, ssid: content.wifi?.ssid || '', password: e.target.value, encryption: content.wifi?.encryption || 'WPA' } })} /></div>
+            <div className="space-y-2"><Label>{t('content.networkName')}</Label><Input value={content.wifi?.ssid || ''} onChange={(e) => onChange({ ...content, wifi: { ...content.wifi, ssid: e.target.value, password: content.wifi?.password || '', encryption: content.wifi?.encryption || 'WPA' } })} /></div>
+            <div className="space-y-2"><Label>{t('content.password')}</Label><Input type="password" value={content.wifi?.password || ''} onChange={(e) => onChange({ ...content, wifi: { ...content.wifi, ssid: content.wifi?.ssid || '', password: e.target.value, encryption: content.wifi?.encryption || 'WPA' } })} /></div>
         </div>
     );
     if (type === 'vcard') return (
         <div className="space-y-3">
             <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1"><Label className="text-xs">First Name</Label><Input value={content.vcard?.firstName || ''} onChange={(e) => onChange({ ...content, vcard: { ...content.vcard, firstName: e.target.value, lastName: content.vcard?.lastName || '' } })} /></div>
-                <div className="space-y-1"><Label className="text-xs">Last Name</Label><Input value={content.vcard?.lastName || ''} onChange={(e) => onChange({ ...content, vcard: { ...content.vcard, firstName: content.vcard?.firstName || '', lastName: e.target.value } })} /></div>
+                <div className="space-y-1"><Label className="text-xs">{t('content.firstName')}</Label><Input value={content.vcard?.firstName || ''} onChange={(e) => onChange({ ...content, vcard: { ...content.vcard, firstName: e.target.value, lastName: content.vcard?.lastName || '' } })} /></div>
+                <div className="space-y-1"><Label className="text-xs">{t('content.lastName')}</Label><Input value={content.vcard?.lastName || ''} onChange={(e) => onChange({ ...content, vcard: { ...content.vcard, firstName: content.vcard?.firstName || '', lastName: e.target.value } })} /></div>
             </div>
-            <div className="space-y-1"><Label className="text-xs">Phone</Label><Input value={content.vcard?.phone || ''} onChange={(e) => onChange({ ...content, vcard: { ...content.vcard, firstName: content.vcard?.firstName || '', lastName: content.vcard?.lastName || '', phone: e.target.value } })} /></div>
-            <div className="space-y-1"><Label className="text-xs">Email</Label><Input value={content.vcard?.email || ''} onChange={(e) => onChange({ ...content, vcard: { ...content.vcard, firstName: content.vcard?.firstName || '', lastName: content.vcard?.lastName || '', email: e.target.value } })} /></div>
+            <div className="space-y-1"><Label className="text-xs">{t('content.phone')}</Label><Input value={content.vcard?.phone || ''} onChange={(e) => onChange({ ...content, vcard: { ...content.vcard, firstName: content.vcard?.firstName || '', lastName: content.vcard?.lastName || '', phone: e.target.value } })} /></div>
+            <div className="space-y-1"><Label className="text-xs">{t('content.email')}</Label><Input value={content.vcard?.email || ''} onChange={(e) => onChange({ ...content, vcard: { ...content.vcard, firstName: content.vcard?.firstName || '', lastName: content.vcard?.lastName || '', email: e.target.value } })} /></div>
         </div>
     );
     return null;
@@ -320,9 +323,10 @@ function DesignForm({
     isProUser?: boolean;
     onUpgradeRequired?: (feature: string) => void;
 }) {
+    const t = useTranslations('Editor');
     const handleGradientChange = (checked: boolean) => {
         if (checked && !isProUser && onUpgradeRequired) {
-            onUpgradeRequired('Gradient Colors');
+            onUpgradeRequired(t('gradientColors'));
             return;
         }
         onChange({
@@ -336,7 +340,7 @@ function DesignForm({
             <div className="space-y-2">
                 <div className="flex items-center justify-between">
                     <Label className="flex items-center gap-2">
-                        Use Gradient
+                        {t('design.useGradient')}
                         {!isProUser && <Lock className="h-3 w-3 text-amber-500" />}
                     </Label>
                     <Switch
@@ -349,7 +353,7 @@ function DesignForm({
             {design.gradient.enabled ? (
                 <>
                     <div className="space-y-2">
-                        <Label>Gradient Type</Label>
+                        <Label>{t('design.gradientType')}</Label>
                         <Select
                             value={design.gradient.type}
                             onValueChange={(v: 'linear' | 'radial') => onChange({
@@ -359,33 +363,33 @@ function DesignForm({
                         >
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="linear">Linear</SelectItem>
-                                <SelectItem value="radial">Radial</SelectItem>
+                                <SelectItem value="linear">{t('design.linear')}</SelectItem>
+                                <SelectItem value="radial">{t('design.radial')}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                     <div className="space-y-2">
-                        <Label>Color 1</Label>
+                        <Label>{t('design.color1')}</Label>
                         <div className="flex gap-2">
                             <input type="color" value={design.gradient.color1} onChange={(e) => onChange({ ...design, gradient: { ...design.gradient, color1: e.target.value } })} className="w-10 h-10 rounded border cursor-pointer" />
                             <Input value={design.gradient.color1} onChange={(e) => onChange({ ...design, gradient: { ...design.gradient, color1: e.target.value } })} />
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <Label>Color 2</Label>
+                        <Label>{t('design.color2')}</Label>
                         <div className="flex gap-2">
                             <input type="color" value={design.gradient.color2} onChange={(e) => onChange({ ...design, gradient: { ...design.gradient, color2: e.target.value } })} className="w-10 h-10 rounded border cursor-pointer" />
                             <Input value={design.gradient.color2} onChange={(e) => onChange({ ...design, gradient: { ...design.gradient, color2: e.target.value } })} />
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <Label>Rotation: {design.gradient.rotation}°</Label>
+                        <Label>{t('design.rotation')}: {design.gradient.rotation}°</Label>
                         <input type="range" min="0" max="360" value={design.gradient.rotation} onChange={(e) => onChange({ ...design, gradient: { ...design.gradient, rotation: parseInt(e.target.value) } })} className="w-full" />
                     </div>
                 </>
             ) : (
                 <div className="space-y-2">
-                    <Label>Foreground Color</Label>
+                    <Label>{t('design.foregroundColor')}</Label>
                     <div className="flex gap-2">
                         <input type="color" value={design.foregroundColor} onChange={(e) => onChange({ ...design, foregroundColor: e.target.value })} className="w-10 h-10 rounded border cursor-pointer" />
                         <Input value={design.foregroundColor} onChange={(e) => onChange({ ...design, foregroundColor: e.target.value })} />
@@ -394,7 +398,7 @@ function DesignForm({
             )}
 
             <div className="space-y-2">
-                <Label>Background Color</Label>
+                <Label>{t('design.backgroundColor')}</Label>
                 <div className="flex gap-2">
                     <input type="color" value={design.backgroundColor} onChange={(e) => onChange({ ...design, backgroundColor: e.target.value })} className="w-10 h-10 rounded border cursor-pointer" />
                     <Input value={design.backgroundColor} onChange={(e) => onChange({ ...design, backgroundColor: e.target.value })} />
@@ -402,20 +406,20 @@ function DesignForm({
             </div>
 
             <div className="space-y-2">
-                <Label>Error Correction</Label>
+                <Label>{t('design.errorCorrection')}</Label>
                 <Select value={design.errorCorrection} onValueChange={(v: 'L' | 'M' | 'Q' | 'H') => onChange({ ...design, errorCorrection: v })}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="L">Low (7%)</SelectItem>
-                        <SelectItem value="M">Medium (15%)</SelectItem>
-                        <SelectItem value="Q">Quartile (25%)</SelectItem>
-                        <SelectItem value="H">High (30%)</SelectItem>
+                        <SelectItem value="L">{t('design.low')}</SelectItem>
+                        <SelectItem value="M">{t('design.medium')}</SelectItem>
+                        <SelectItem value="Q">{t('design.quartile')}</SelectItem>
+                        <SelectItem value="H">{t('design.high')}</SelectItem>
                     </SelectContent>
                 </Select>
             </div>
 
             <div className="space-y-2">
-                <Label>Size: {design.size}px</Label>
+                <Label>{t('design.size')}: {design.size}px</Label>
                 <input type="range" min="128" max="512" value={design.size} onChange={(e) => onChange({ ...design, size: parseInt(e.target.value) })} className="w-full" />
             </div>
         </div>
@@ -433,25 +437,26 @@ function StyleForm({
     isProUser?: boolean;
     onUpgradeRequired?: (feature: string) => void;
 }) {
+    const t = useTranslations('Editor');
     const dotStyles: { value: DotStyle; label: string; isPro?: boolean }[] = [
-        { value: 'square', label: 'Square' },
-        { value: 'dots', label: 'Dots', isPro: true },
-        { value: 'rounded', label: 'Rounded', isPro: true },
-        { value: 'classy', label: 'Classy', isPro: true },
-        { value: 'classy-rounded', label: 'Classy Rounded', isPro: true },
+        { value: 'square', label: t('style.square') },
+        { value: 'dots', label: t('style.dots'), isPro: true },
+        { value: 'rounded', label: t('style.rounded'), isPro: true },
+        { value: 'classy', label: t('style.classy'), isPro: true },
+        { value: 'classy-rounded', label: t('style.classyRounded'), isPro: true },
     ];
 
     const cornerStyles: { value: CornerStyle; label: string; isPro?: boolean }[] = [
-        { value: 'square', label: 'Square' },
-        { value: 'rounded', label: 'Rounded', isPro: true },
-        { value: 'circle', label: 'Circle', isPro: true },
-        { value: 'classy', label: 'Classy', isPro: true },
-        { value: 'classy-rounded', label: 'Classy Rounded', isPro: true },
+        { value: 'square', label: t('style.square') },
+        { value: 'rounded', label: t('style.rounded'), isPro: true },
+        { value: 'circle', label: t('style.circle'), isPro: true },
+        { value: 'classy', label: t('style.classy'), isPro: true },
+        { value: 'classy-rounded', label: t('style.classyRounded'), isPro: true },
     ];
 
     const handleStyleChange = (key: keyof QRDesign, value: string, isPro: boolean = false) => {
         if (isPro && !isProUser && onUpgradeRequired) {
-            onUpgradeRequired('Advanced Styling');
+            onUpgradeRequired(t('advancedStyling'));
             return;
         }
         onChange({ ...design, [key]: value });
@@ -460,7 +465,7 @@ function StyleForm({
     return (
         <div className="space-y-4">
             <div className="space-y-2">
-                <Label>Dot Style</Label>
+                <Label>{t('style.dotStyle')}</Label>
                 <Select
                     value={design.dotStyle}
                     onValueChange={(v: DotStyle) => {
@@ -481,7 +486,7 @@ function StyleForm({
             </div>
 
             <div className="space-y-2">
-                <Label>Corner Style</Label>
+                <Label>{t('style.cornerStyle')}</Label>
                 <Select
                     value={design.cornerStyle}
                     onValueChange={(v: CornerStyle) => {
@@ -502,7 +507,7 @@ function StyleForm({
             </div>
 
             <div className="space-y-2">
-                <Label>Corner Dot Style</Label>
+                <Label>{t('style.cornerDotStyle')}</Label>
                 <Select
                     value={design.cornerDotStyle}
                     onValueChange={(v: CornerStyle) => {
@@ -523,7 +528,7 @@ function StyleForm({
             </div>
 
             <div className="pt-4 border-t border-border">
-                <h4 className="text-sm font-medium mb-3">Style Preview</h4>
+                <h4 className="text-sm font-medium mb-3">{t('style.stylePreview')}</h4>
                 <div className="grid grid-cols-3 gap-2">
                     {dotStyles.slice(0, 3).map(style => (
                         <button
@@ -549,10 +554,11 @@ function StyleForm({
 }
 
 function FrameForm({ design, onChange }: { design: QRDesign; onChange: (d: QRDesign) => void }) {
+    const t = useTranslations('Editor');
     return (
         <div className="space-y-4">
             <div className="space-y-2">
-                <Label>Frame Template</Label>
+                <Label>{t('frame.template')}</Label>
                 <div className="grid grid-cols-2 gap-2">
                     {frameTemplates.map((frame) => (
                         <button
@@ -570,18 +576,18 @@ function FrameForm({ design, onChange }: { design: QRDesign; onChange: (d: QRDes
             {design.frame.type === 'label' || design.frame.type === 'banner' ? (
                 <>
                     <div className="space-y-2">
-                        <Label>Label Text</Label>
+                        <Label>{t('frame.labelText')}</Label>
                         <Input
                             value={design.frame.labelText || ''}
                             onChange={(e) => onChange({
                                 ...design,
                                 frame: { ...design.frame, labelText: e.target.value }
                             })}
-                            placeholder="SCAN ME"
+                            placeholder={t('frame.scanMe')}
                         />
                     </div>
                     <div className="space-y-2">
-                        <Label>Frame Color</Label>
+                        <Label>{t('frame.color')}</Label>
                         <div className="flex gap-2">
                             <input
                                 type="color"
@@ -608,8 +614,9 @@ function FrameForm({ design, onChange }: { design: QRDesign; onChange: (d: QRDes
 }
 
 function FramePreview({ frame }: { frame: FrameTemplate }) {
+    const t = useTranslations('Editor');
     if (frame.type === 'none') {
-        return <div className="aspect-square bg-muted rounded flex items-center justify-center text-muted-foreground text-xs">No frame</div>;
+        return <div className="aspect-square bg-muted rounded flex items-center justify-center text-muted-foreground text-xs">{t('frame.noFrame')}</div>;
     }
 
     if (frame.type === 'simple') {
@@ -631,11 +638,11 @@ function FramePreview({ frame }: { frame: FrameTemplate }) {
     if (frame.type === 'label') {
         return (
             <div className="aspect-square flex flex-col">
-                {frame.labelPosition === 'top' && <div className="text-[6px] text-center bg-foreground text-background rounded-t py-0.5">SCAN</div>}
+                {frame.labelPosition === 'top' && <div className="text-[6px] text-center bg-foreground text-background rounded-t py-0.5">{t('frame.scan')}</div>}
                 <div className="flex-1 border-2 border-foreground border-t-0 border-b-0 flex items-center justify-center">
                     <div className="w-3/4 h-3/4 bg-foreground/20 rounded-sm" />
                 </div>
-                {frame.labelPosition === 'bottom' && <div className="text-[6px] text-center bg-foreground text-background rounded-b py-0.5">SCAN</div>}
+                {frame.labelPosition === 'bottom' && <div className="text-[6px] text-center bg-foreground text-background rounded-b py-0.5">{t('frame.scan')}</div>}
             </div>
         );
     }
@@ -646,7 +653,7 @@ function FramePreview({ frame }: { frame: FrameTemplate }) {
                 <div className="flex-1 border-2 border-foreground rounded-t flex items-center justify-center">
                     <div className="w-3/4 h-3/4 bg-foreground/20 rounded-sm" />
                 </div>
-                <div className="text-[5px] text-center bg-foreground text-background rounded-b py-1">SCAN TO VISIT</div>
+                <div className="text-[5px] text-center bg-foreground text-background rounded-b py-1">{t('frame.scanToVisit')}</div>
             </div>
         );
     }

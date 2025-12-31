@@ -1,0 +1,44 @@
+
+> qr-platform-next@0.1.0 build
+> prisma generate && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+✔ Generated Prisma Client (v5.22.0) to .\node_modules\@prisma\client in 394ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Easily identify and fix slow SQL queries in your app. Optimize helps you enhance your visibility: https://pris.ly/--optimize
+
+   ▲ Next.js 14.1.0
+   - Environments: .env
+
+   Creating an optimized production build ...
+
+> Build error occurred
+Error: 
+[next-intl] Could not locate request configuration module.
+
+This path is supported by default: ./(src/)i18n/request.{js,jsx,ts,tsx}
+
+Alternatively, you can specify a custom location in your Next.js config:
+
+const withNextIntl = createNextIntlPlugin(
+
+Alternatively, you can specify a custom location in your Next.js config:
+
+const withNextIntl = createNextIntlPlugin(
+  './path/to/i18n/request.tsx'
+);
+
+    at throwError (C:\Users\swarnendu maity\Documents\Webstitch\QR\test-qr-nextJS\node_modules\next-intl\dist\cjs\development\plugin-DDtWCyPI.cjs:21:9)
+    at resolveI18nPath (C:\Users\swarnendu maity\Documents\Webstitch\QR\test-qr-nextJS\node_modules\next-intl\dist\cjs\development\plugin-DDtWCyPI.cjs:1171:5)
+    at Object.webpack (C:\Users\swarnendu maity\Documents\Webstitch\QR\test-qr-nextJS\node_modules\next-intl\dist\cjs\development\plugin-DDtWCyPI.cjs:1308:96)
+    at getBaseWebpackConfig (C:\Users\swarnendu maity\Documents\Webstitch\QR\test-qr-nextJS\node_modules\next\dist\build\webpack-config.js:1775:32)
+    at async Promise.all (index 1)
+    at async Span.traceAsyncFn (C:\Users\swarnendu maity\Documents\Webstitch\QR\test-qr-nextJS\node_modules\next\dist\trace\trace.js:151:20)
+    at async webpackBuildImpl (C:\Users\swarnendu maity\Documents\Webstitch\QR\test-qr-nextJS\node_modules\next\dist\build\webpack-build\impl.js:133:21)
+    at async C:\Users\swarnendu maity\Documents\Webstitch\QR\test-qr-nextJS\node_modules\next\dist\build\index.js:828:115
+    at async Span.traceAsyncFn (C:\Users\swarnendu maity\Documents\Webstitch\QR\test-qr-nextJS\node_modules\next\dist\trace\trace.js:151:20)
+    at async build (C:\Users\swarnendu maity\Documents\Webstitch\QR\test-qr-nextJS\node_modules\next\dist\build\index.js:374:9)

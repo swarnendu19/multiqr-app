@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/lib/auth';
 import { useQRProjects } from '@/hooks/useQRProjects';
@@ -35,6 +36,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 export default function Analytics() {
     const { user, isProUser } = useAuth();
     const { projects } = useQRProjects();
+    const t = useTranslations('Analytics');
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null);
     const [selectedProject, setSelectedProject] = useState('all');
@@ -83,21 +85,21 @@ export default function Analytics() {
                         <BarChart3 className="h-12 w-12 text-muted-foreground" />
                     </div>
                     <div className="max-w-md space-y-2">
-                        <h1 className="text-3xl font-bold">Analytics Locked</h1>
+                        <h1 className="text-3xl font-bold">{t('lockedTitle')}</h1>
                         <p className="text-muted-foreground text-lg">
-                            Upgrade to Pro to unlock detailed scan analytics, location data, and device insights.
+                            {t('lockedDesc')}
                         </p>
                     </div>
                     <Button size="lg" onClick={() => setUpgradeModalOpen(true)} className="gap-2">
                         <Lock className="h-4 w-4" />
-                        Unlock Analytics
+                        {t('unlock')}
                     </Button>
 
                     <UpgradeModal
                         open={upgradeModalOpen}
                         onOpenChange={setUpgradeModalOpen}
-                        title="Unlock Analytics"
-                        description="Gain valuable insights into your QR code performance with our advanced analytics suite. Available exclusively on the Pro plan."
+                        title={t('unlock')}
+                        description={t('unlockDesc')}
                     />
                 </div>
             </DashboardLayout>
@@ -120,18 +122,18 @@ export default function Analytics() {
                 {/* Header & Filters */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-bold">Analytics</h1>
+                        <h1 className="text-2xl font-bold">{t('title')}</h1>
                         <p className="text-muted-foreground">
-                            Track your QR code performance and user engagement
+                            {t('subtitle')}
                         </p>
                     </div>
                     <div className="flex gap-2">
                         <Select value={selectedProject} onValueChange={setSelectedProject}>
                             <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="All Projects" />
+                                <SelectValue placeholder={t('allProjects')} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All Projects</SelectItem>
+                                <SelectItem value="all">{t('allProjects')}</SelectItem>
                                 {projects.map(p => (
                                     <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
                                 ))}
@@ -139,12 +141,12 @@ export default function Analytics() {
                         </Select>
                         <Select value={timeRange} onValueChange={setTimeRange}>
                             <SelectTrigger className="w-[140px]">
-                                <SelectValue placeholder="Last 30 Days" />
+                                <SelectValue placeholder={t('last30Days')} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="7">Last 7 Days</SelectItem>
-                                <SelectItem value="30">Last 30 Days</SelectItem>
-                                <SelectItem value="90">Last 3 Months</SelectItem>
+                                <SelectItem value="7">{t('last7Days')}</SelectItem>
+                                <SelectItem value="30">{t('last30Days')}</SelectItem>
+                                <SelectItem value="90">{t('last3Months')}</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -154,31 +156,31 @@ export default function Analytics() {
                 <div className="grid gap-4 md:grid-cols-3">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Total Scans</CardTitle>
+                            <CardTitle className="text-sm font-medium">{t('totalScans')}</CardTitle>
                             <TrendingUp className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{data?.overview.totalScans}</div>
                             <p className="text-xs text-muted-foreground mt-1">
-                                {data?.overview.growthRate > 0 ? '+' : ''}{data?.overview.growthRate}% from previous period
+                                {data?.overview.growthRate > 0 ? '+' : ''}{data?.overview.growthRate}% {t('fromPrevious')}
                             </p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
+                            <CardTitle className="text-sm font-medium">{t('activeProjects')}</CardTitle>
                             <Smartphone className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold">{projects.length}</div>
                             <p className="text-xs text-muted-foreground mt-1">
-                                Total QR codes created
+                                {t('totalCreated')}
                             </p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Top Country</CardTitle>
+                            <CardTitle className="text-sm font-medium">{t('topCountry')}</CardTitle>
                             <Globe className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
@@ -186,7 +188,7 @@ export default function Analytics() {
                                 {data?.charts.countryData[0]?.country || 'N/A'}
                             </div>
                             <p className="text-xs text-muted-foreground mt-1">
-                                Most active location
+                                {t('mostActive')}
                             </p>
                         </CardContent>
                     </Card>
@@ -195,8 +197,8 @@ export default function Analytics() {
                 {/* Main Chart: Scans Over Time */}
                 <Card className="col-span-4">
                     <CardHeader>
-                        <CardTitle>Scan Activity</CardTitle>
-                        <CardDescription>Daily scan volume over time</CardDescription>
+                        <CardTitle>{t('scanActivity')}</CardTitle>
+                        <CardDescription>{t('scanActivityDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent className="pl-2">
                         <div className="h-[300px] w-full">
@@ -246,7 +248,7 @@ export default function Analytics() {
                     {/* Device Distribution */}
                     <Card className="col-span-3">
                         <CardHeader>
-                            <CardTitle>Device Distribution</CardTitle>
+                            <CardTitle>{t('deviceDistribution')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="h-[250px] w-full">
@@ -277,7 +279,7 @@ export default function Analytics() {
                     {/* Hourly Distribution */}
                     <Card className="col-span-4">
                         <CardHeader>
-                            <CardTitle>Hourly Traffic</CardTitle>
+                            <CardTitle>{t('hourlyTraffic')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="h-[250px] w-full">
@@ -312,7 +314,7 @@ export default function Analytics() {
                     {/* Top Countries */}
                     <Card className="col-span-3">
                         <CardHeader>
-                            <CardTitle>Top Countries</CardTitle>
+                            <CardTitle>{t('topCountries')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
@@ -321,7 +323,7 @@ export default function Analytics() {
                                         <div className="w-full space-y-1">
                                             <div className="flex items-center justify-between text-sm">
                                                 <span className="font-medium">{item.country}</span>
-                                                <span className="text-muted-foreground">{item.count} scans</span>
+                                                <span className="text-muted-foreground">{item.count} {t('scans')}</span>
                                             </div>
                                             <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
                                                 <div
@@ -333,7 +335,7 @@ export default function Analytics() {
                                     </div>
                                 ))}
                                 {data?.charts.countryData.length === 0 && (
-                                    <p className="text-center text-muted-foreground py-8">No location data available</p>
+                                    <p className="text-center text-muted-foreground py-8">{t('noLocationData')}</p>
                                 )}
                             </div>
                         </CardContent>
@@ -342,7 +344,7 @@ export default function Analytics() {
                     {/* Browser Breakdown */}
                     <Card className="col-span-4">
                         <CardHeader>
-                            <CardTitle>Browser Breakdown</CardTitle>
+                            <CardTitle>{t('browserBreakdown')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="h-[250px] w-full">
@@ -372,18 +374,18 @@ export default function Analytics() {
                 {/* Recent Activity Table */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Recent Activity</CardTitle>
-                        <CardDescription>Latest scans across all your projects</CardDescription>
+                        <CardTitle>{t('recentActivity')}</CardTitle>
+                        <CardDescription>{t('recentActivityDesc')}</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Project</TableHead>
-                                    <TableHead>Device</TableHead>
-                                    <TableHead>Browser</TableHead>
-                                    <TableHead>Location</TableHead>
-                                    <TableHead className="text-right">Time</TableHead>
+                                    <TableHead>{t('project')}</TableHead>
+                                    <TableHead>{t('device')}</TableHead>
+                                    <TableHead>{t('browser')}</TableHead>
+                                    <TableHead>{t('location')}</TableHead>
+                                    <TableHead className="text-right">{t('time')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -401,7 +403,7 @@ export default function Analytics() {
                                 {data?.recentActivity.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                                            No recent scans found
+                                            {t('noRecentScans')}
                                         </TableCell>
                                     </TableRow>
                                 )}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
@@ -13,20 +14,22 @@ import { toast } from 'sonner';
 
 export default function Account() {
     const { user } = useAuth();
+    const t = useTranslations('Account');
+    const tCommon = useTranslations('Common');
     const [fullName, setFullName] = useState('');
 
     const handleUpdateProfile = (e: React.FormEvent) => {
         e.preventDefault();
-        toast.success('Profile updated successfully');
+        toast.success(t('profileUpdated'));
     };
 
     return (
         <DashboardLayout>
             <div className="p-6 lg:p-8 max-w-4xl">
                 <div className="mb-8">
-                    <h1 className="text-2xl font-bold">Account Settings</h1>
+                    <h1 className="text-2xl font-bold">{t('title')}</h1>
                     <p className="text-muted-foreground">
-                        Manage your account information and preferences
+                        {t('subtitle')}
                     </p>
                 </div>
 
@@ -36,25 +39,25 @@ export default function Account() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <User className="h-5 w-5" />
-                                Profile Information
+                                {t('profile')}
                             </CardTitle>
                             <CardDescription>
-                                Update your personal details
+                                {t('updateProfileDesc')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <form onSubmit={handleUpdateProfile} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="fullName">Full Name</Label>
+                                    <Label htmlFor="fullName">{t('name')}</Label>
                                     <Input
                                         id="fullName"
                                         value={fullName}
                                         onChange={(e) => setFullName(e.target.value)}
-                                        placeholder="Enter your full name"
+                                        placeholder={t('namePlaceholder')}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="email">Email</Label>
+                                    <Label htmlFor="email">{t('email')}</Label>
                                     <Input
                                         id="email"
                                         type="email"
@@ -63,10 +66,10 @@ export default function Account() {
                                         className="bg-muted"
                                     />
                                     <p className="text-xs text-muted-foreground">
-                                        Email cannot be changed
+                                        {t('emailNote')}
                                     </p>
                                 </div>
-                                <Button type="submit">Save Changes</Button>
+                                <Button type="submit">{tCommon('save')}</Button>
                             </form>
                         </CardContent>
                     </Card>
@@ -76,25 +79,25 @@ export default function Account() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <CreditCard className="h-5 w-5" />
-                                Subscription
+                                {t('subscription')}
                             </CardTitle>
                             <CardDescription>
-                                Manage your subscription and billing
+                                {t('subscriptionDesc')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="font-medium">Current Plan</span>
+                                        <span className="font-medium">{t('currentPlan')}</span>
                                         <Badge variant={user?.subscription_status === 'active' ? 'default' : 'secondary'}>
-                                            {user?.subscription_status === 'active' ? 'Pro' : 'Free'}
+                                            {user?.subscription_status === 'active' ? t('pro') : t('free')}
                                         </Badge>
                                     </div>
                                     <p className="text-sm text-muted-foreground">
                                         {user?.subscription_status === 'active'
-                                            ? 'Unlimited QR codes and premium features'
-                                            : 'Basic features with limited exports (Max 5 QR codes)'}
+                                            ? t('proPlanDesc')
+                                            : t('freePlanDesc')}
                                     </p>
                                 </div>
                                 {user?.subscription_status === 'active' ? (
@@ -109,15 +112,15 @@ export default function Account() {
                                                 const data = await res.json();
                                                 if (data.url) window.location.href = data.url;
                                             } catch (error) {
-                                                toast.error('Failed to open billing portal');
+                                                toast.error(t('portalError'));
                                             }
                                         }}
                                     >
-                                        Manage Subscription
+                                        {t('manageSubscription')}
                                     </Button>
                                 ) : (
                                     <Button onClick={() => window.location.href = '/pricing'}>
-                                        Upgrade
+                                        {t('upgrade')}
                                     </Button>
                                 )}
                             </div>
@@ -129,14 +132,14 @@ export default function Account() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Shield className="h-5 w-5" />
-                                Security
+                                {t('security')}
                             </CardTitle>
                             <CardDescription>
-                                Manage your password and security settings
+                                {t('securityDesc')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Button variant="outline">Change Password</Button>
+                            <Button variant="outline">{t('changePassword')}</Button>
                         </CardContent>
                     </Card>
                 </div>

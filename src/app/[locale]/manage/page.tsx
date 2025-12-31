@@ -49,8 +49,10 @@ const typeIcons: Record<QRType, React.ComponentType<{ className?: string }>> = {
 
 import { useAuth } from '@/lib/auth';
 import { API_URL } from '@/lib/config';
+import { useTranslations } from 'next-intl';
 
 function ManageContent() {
+    const t = useTranslations('Manage');
     const router = useRouter();
     const { user, updateUser, isProUser } = useAuth();
     const searchParams = useSearchParams();
@@ -59,8 +61,8 @@ function ManageContent() {
     const [downloadModal, setDownloadModal] = useState<QRProject | null>(null);
     const [downloadUrl, setDownloadUrl] = useState('');
     const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-    const [upgradeModalTitle, setUpgradeModalTitle] = useState("Upgrade to Pro");
-    const [upgradeModalDesc, setUpgradeModalDesc] = useState("This feature is available exclusively to Pro plan subscribers.");
+    const [upgradeModalTitle, setUpgradeModalTitle] = useState(t('upgradeTitle'));
+    const [upgradeModalDesc, setUpgradeModalDesc] = useState(t('upgradeDesc'));
 
     // Check subscription status if returning from Stripe
     useEffect(() => {
@@ -75,7 +77,7 @@ function ManageContent() {
                     const { status } = await response.json();
                     updateUser({ subscription_status: status });
 
-                    toast.success('Subscription updated!');
+                    toast.success(t('subUpdated'));
                     // Clear query params
                     router.replace('/manage');
                 } catch (error) {
@@ -118,8 +120,8 @@ function ManageContent() {
 
     const handleCreateNew = () => {
         if (!isProUser && projects.length >= 5) {
-            setUpgradeModalTitle("Limit Reached");
-            setUpgradeModalDesc("Free plan includes up to 5 QR codes. Upgrade to Pro for unlimited QR codes.");
+            setUpgradeModalTitle(t('limitTitle'));
+            setUpgradeModalDesc(t('limitDesc'));
             setUpgradeModalOpen(true);
             return;
         }
@@ -130,14 +132,14 @@ function ManageContent() {
         if (!downloadModal || !downloadUrl) return;
 
         if ((format === 'jpeg' || format === 'svg') && !isProUser) {
-            setUpgradeModalTitle("Pro Feature");
-            setUpgradeModalDesc("JPEG and SVG exports are available exclusively to Pro plan subscribers.");
+            setUpgradeModalTitle(t('proFeatureTitle'));
+            setUpgradeModalDesc(t('proFeatureDesc'));
             setUpgradeModalOpen(true);
             return;
         }
 
         if (format === 'svg') {
-            toast.info('For SVG with frames, please open the Editor');
+            toast.info(t('svgInfo'));
             router.push(`/qrcodes/${downloadModal.id}/edit`);
             return;
         }
@@ -147,7 +149,7 @@ function ManageContent() {
             a.href = downloadUrl;
             a.download = `${downloadModal.name}.png`;
             a.click();
-            toast.success('Downloaded as PNG');
+            toast.success(t('downloadPng'));
             return;
         }
 
@@ -169,22 +171,22 @@ function ManageContent() {
                     a.href = jpegUrl;
                     a.download = `${downloadModal.name}.jpeg`;
                     a.click();
-                    toast.success('Downloaded as JPEG');
+                    toast.success(t('downloadJpeg'));
                 }
             };
         }
     };
 
     const handleDelete = async (project: QRProject) => {
-        if (confirm(`Delete "${project.name}"? This cannot be undone.`)) {
+        if (confirm(t('deleteConfirm', { name: project.name }))) {
             await deleteProject(project.id);
         }
     };
 
     const handleDuplicate = (project: QRProject) => {
         if (!isProUser && projects.length >= 5) {
-            setUpgradeModalTitle("Limit Reached");
-            setUpgradeModalDesc("Free plan includes up to 5 QR codes. Upgrade to Pro for unlimited QR codes.");
+            setUpgradeModalTitle(t('limitTitle'));
+            setUpgradeModalDesc(t('limitDesc'));
             setUpgradeModalOpen(true);
             return;
         }
@@ -200,14 +202,14 @@ function ManageContent() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold">My QR Codes</h1>
+                    <h1 className="text-2xl font-bold">{t('title')}</h1>
                     <p className="text-muted-foreground">
-                        Manage and organize your QR code projects
+                        {t('subtitle')}
                     </p>
                 </div>
                 <Button onClick={handleCreateNew}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create New
+                    {t('createNew')}
                 </Button>
             </div>
 
@@ -215,7 +217,7 @@ function ManageContent() {
             <div className="relative max-w-md mb-6">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                    placeholder="Search projects..."
+                    placeholder={t('searchPlaceholder')}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="pl-10"
@@ -232,13 +234,13 @@ function ManageContent() {
                     <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
                         <QrCode className="h-8 w-8 text-muted-foreground" />
                     </div>
-                    <h3 className="text-lg font-medium mb-2">No QR codes yet</h3>
+                    <h3 className="text-lg font-medium mb-2">{t('noQrCodes')}</h3>
                     <p className="text-muted-foreground mb-6">
-                        Create your first QR code to get started
+                        {t('createFirst')}
                     </p>
                     <Button onClick={handleCreateNew}>
                         <Plus className="h-4 w-4 mr-2" />
-                        Create QR Code
+                        {t('createQr')}
                     </Button>
                 </div>
             ) : (
@@ -260,7 +262,7 @@ function ManageContent() {
             <Dialog open={!!downloadModal} onOpenChange={() => setDownloadModal(null)}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Your QR Code is Ready!</DialogTitle>
+                        <DialogTitle>{t('readyTitle')}</DialogTitle>
                     </DialogHeader>
 
                     <div className="flex flex-col items-center py-4">
@@ -277,7 +279,7 @@ function ManageContent() {
                         )}
 
                         <p className="text-center text-muted-foreground text-sm mb-4">
-                            Download your QR code in your preferred format
+                            {t('readyDesc')}
                         </p>
 
                         <div className="flex gap-2 w-full">
@@ -288,7 +290,7 @@ function ManageContent() {
                                 disabled={!downloadUrl}
                             >
                                 <Download className="h-4 w-4 mr-1" />
-                                PNG
+                                {t('png')}
                             </Button>
                             <Button
                                 variant="outline"
@@ -297,7 +299,7 @@ function ManageContent() {
                                 disabled={!downloadUrl}
                             >
                                 <Download className="h-4 w-4 mr-1" />
-                                JPEG
+                                {t('jpeg')}
                             </Button>
                             <Button
                                 variant="outline"
@@ -306,7 +308,7 @@ function ManageContent() {
                                 disabled={!downloadUrl}
                             >
                                 <Download className="h-4 w-4 mr-1" />
-                                SVG
+                                {t('svg')}
                             </Button>
                         </div>
 
@@ -320,7 +322,8 @@ function ManageContent() {
                                 }
                             }}
                         >
-                            Go to Editor
+
+                            {t('goToEditor')}
                         </Button>
                     </div>
                 </DialogContent>
@@ -361,6 +364,7 @@ function ProjectCard({
     onDelete: () => void;
 }) {
     const [previewUrl, setPreviewUrl] = useState('');
+    const t = useTranslations('Manage');
     const TypeIcon = typeIcons[project.qr_type as QRType] || QrCode;
 
     useEffect(() => {
@@ -416,19 +420,19 @@ function ProjectCard({
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={onEdit}>
                                 <Edit className="h-4 w-4 mr-2" />
-                                Edit
+                                {t('edit')}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={onDownload}>
                                 <Download className="h-4 w-4 mr-2" />
-                                Download
+                                {t('download')}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={onDuplicate}>
                                 <Copy className="h-4 w-4 mr-2" />
-                                Duplicate
+                                {t('duplicate')}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={onDelete} className="text-destructive">
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
+                                {t('delete')}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

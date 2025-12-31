@@ -2,45 +2,49 @@
 
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
+import { useTranslations } from 'next-intl';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { QrCode, Sparkles, Palette, Download, ArrowRight, CheckCircle2 } from 'lucide-react';
 
-const features = [
-    {
-        icon: QrCode,
-        title: 'Multiple QR Types',
-        description: 'Create QR codes for URLs, WiFi, vCards, and plain text',
-    },
-    {
-        icon: Palette,
-        title: 'Custom Styling',
-        description: 'Customize colors, patterns, and add your logo',
-    },
-    {
-        icon: Download,
-        title: 'High Quality Export',
-        description: 'Export in PNG, JPEG, or SVG formats',
-    },
-    {
-        icon: Sparkles,
-        title: 'Live Preview',
-        description: 'See changes instantly with our real-time editor',
-    },
-];
 
-const benefits = [
-    'Unlimited QR code generation',
-    'Custom colors and styling',
-    'Logo overlay support',
-    'Multiple export formats',
-    'Cloud storage for projects',
-    'Works on any device',
-];
 
 export default function Index() {
     const router = useRouter();
     const { user } = useAuth();
+    const t = useTranslations('Index');
+
+    const features = [
+        {
+            icon: QrCode,
+            title: t('feat1Title'),
+            description: t('feat1Desc'),
+        },
+        {
+            icon: Palette,
+            title: t('feat2Title'),
+            description: t('feat2Desc'),
+        },
+        {
+            icon: Download,
+            title: t('feat3Title'),
+            description: t('feat3Desc'),
+        },
+        {
+            icon: Sparkles,
+            title: t('feat4Title'),
+            description: t('feat4Desc'),
+        },
+    ];
+
+    const benefits = [
+        t('benefit1'),
+        t('benefit2'),
+        t('benefit3'),
+        t('benefit4'),
+        t('benefit5'),
+        t('benefit6'),
+    ];
 
     return (
         <div className="min-h-screen bg-background">
@@ -56,18 +60,17 @@ export default function Index() {
                     <div className="mx-auto max-w-3xl text-center animate-fade-in">
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 text-secondary mb-6 text-sm font-medium">
                             <Sparkles className="h-4 w-4" />
-                            Professional QR Code Generator
+                            {t('heroBadge')}
                         </div>
 
                         <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6">
-                            Create Beautiful{' '}
-                            <span className="gradient-text">QR Codes</span>
-                            {' '}in Seconds
+                            {t('heroTitle1')}{' '}
+                            <span className="gradient-text">{t('heroTitle2')}</span>
+                            {' '}{t('heroTitle3')}
                         </h1>
 
                         <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                            Design stunning QR codes with custom colors, logos, and styles.
-                            Perfect for business cards, marketing materials, and more.
+                            {t('heroDesc')}
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -77,7 +80,7 @@ export default function Index() {
                                 className="h-12 px-8 text-lg"
                                 onClick={() => router.push(user ? '/qrcodes/new' : '/register')}
                             >
-                                Start Creating Free
+                                {t('startFree')}
                                 <ArrowRight className="h-5 w-5 ml-1" />
                             </Button>
 
@@ -88,7 +91,7 @@ export default function Index() {
                                     className="h-12 px-8 text-lg"
                                     onClick={() => router.push('/login')}
                                 >
-                                    Sign In
+                                    {t('signIn')}
                                 </Button>
                             )}
                         </div>
@@ -101,10 +104,10 @@ export default function Index() {
                 <div className="container">
                     <div className="text-center mb-12">
                         <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                            Everything You Need
+                            {t('featuresTitle')}
                         </h2>
                         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                            A complete toolkit for creating professional QR codes
+                            {t('featuresDesc')}
                         </p>
                     </div>
 
@@ -132,11 +135,10 @@ export default function Index() {
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         <div>
                             <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                                Why Choose MultiQR?
+                                {t('whyChoose')}
                             </h2>
                             <p className="text-muted-foreground text-lg mb-8">
-                                Join thousands of businesses and creators who trust MultiQR
-                                for their QR code needs.
+                                {t('whyChooseDesc')}
                             </p>
 
                             <ul className="space-y-4">
@@ -167,10 +169,10 @@ export default function Index() {
                 <div className="container">
                     <div className="max-w-3xl mx-auto text-center p-12 rounded-3xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground">
                         <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                            Ready to Create Your QR Code?
+                            {t('ctaTitle')}
                         </h2>
                         <p className="text-primary-foreground/80 text-lg mb-8">
-                            Start for free. No credit card required.
+                            {t('ctaDesc')}
                         </p>
                         <Button
                             variant="secondary"
@@ -178,7 +180,7 @@ export default function Index() {
                             className="h-12 px-8 text-lg"
                             onClick={() => router.push(user ? '/qrcodes/new' : '/register')}
                         >
-                            Get Started Now
+                            {t('ctaButton')}
                             <ArrowRight className="h-5 w-5 ml-1" />
                         </Button>
                     </div>
@@ -193,7 +195,7 @@ export default function Index() {
                         <span className="font-semibold">MultiQR</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                        © {new Date().getFullYear()} MultiQR. All rights reserved.
+                        © {new Date().getFullYear()} MultiQR. {t('footerRights')}
                     </p>
                 </div>
             </footer>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth } from '@/lib/auth';
+import { useTranslations } from 'next-intl';
 import { NavLink } from '@/components/NavLink';
 import { cn } from '@/lib/utils';
 import {
@@ -13,17 +14,19 @@ import {
   User,
 } from 'lucide-react';
 
-const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/manage' },
-  { icon: QrCode, label: 'My QR Codes', path: '/manage' },
-  { icon: FileStack, label: 'Templates', path: '/manage/templates' },
-  { icon: BarChart3, label: 'Analytics', path: '/manage/analytics' },
-  { icon: User, label: 'Account', path: '/account' },
-  { icon: Settings, label: 'Settings', path: '/account/settings' },
-];
-
 export function DashboardSidebar() {
   const { isProUser } = useAuth();
+  const t = useTranslations('Sidebar');
+
+  const navItems = [
+    { icon: LayoutDashboard, label: t('dashboard'), path: '/manage' },
+    { icon: QrCode, label: t('myQrCodes'), path: '/manage' },
+    { icon: FileStack, label: t('templates'), path: '/manage/templates' },
+    { icon: BarChart3, label: t('analytics'), path: '/manage/analytics' },
+    { icon: User, label: t('account'), path: '/account' },
+    { icon: Settings, label: t('settings'), path: '/account/settings' },
+  ];
+
   return (
     <aside className="hidden lg:flex w-64 flex-col bg-sidebar border-r border-sidebar-border">
       <div className="p-6">
@@ -54,22 +57,22 @@ export function DashboardSidebar() {
       <div className="p-4 m-4 rounded-xl bg-gradient-to-br from-sidebar-primary/20 to-accent/20 border border-sidebar-border">
         {isProUser ? (
           <>
-            <h4 className="font-semibold text-sidebar-foreground mb-1">Pro Plan Active</h4>
+            <h4 className="font-semibold text-sidebar-foreground mb-1">{t('proActive')}</h4>
             <p className="text-xs text-sidebar-foreground/70">
-              You have access to all premium features
+              {t('access')}
             </p>
           </>
         ) : (
           <>
-            <h4 className="font-semibold text-sidebar-foreground mb-1">Upgrade to Pro</h4>
+            <h4 className="font-semibold text-sidebar-foreground mb-1">{t('upgrade')}</h4>
             <p className="text-xs text-sidebar-foreground/70 mb-3">
-              Unlock unlimited exports and premium features
+              {t('unlock')}
             </p>
             <NavLink
               href="/pricing"
               className="block w-full py-2 px-4 text-center text-sm font-medium rounded-lg bg-sidebar-primary text-sidebar-primary-foreground hover:opacity-90 transition-opacity"
             >
-              View Plans
+              {t('viewPlans')}
             </NavLink>
           </>
         )}

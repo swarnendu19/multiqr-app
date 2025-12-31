@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -13,10 +14,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { QrCode, User, Settings, LogOut, Plus, CreditCard } from 'lucide-react';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 
 export function Header() {
   const { user, signOut, isProUser } = useAuth();
   const router = useRouter();
+  const t = useTranslations('Header');
+  const tSidebar = useTranslations('Sidebar');
 
   const handleSignOut = async () => {
     await signOut();
@@ -39,8 +43,9 @@ export function Header() {
         </Link>
 
         <nav className="flex items-center gap-4">
+          <LanguageSwitcher />
           <Button variant="ghost" size="sm" onClick={() => router.push('/pricing')} className="hidden sm:flex">
-            Pricing
+            {t('pricing')}
           </Button>
           {user ? (
             <>
@@ -51,7 +56,7 @@ export function Header() {
                 className="hidden sm:flex"
               >
                 <Plus className="h-4 w-4 mr-1" />
-                Create QR
+                {t('createQr')}
               </Button>
 
               <DropdownMenu>
@@ -68,30 +73,30 @@ export function Header() {
                   <div className="px-3 py-2">
                     <p className="text-sm font-medium">{user.email}</p>
                     <p className="text-xs text-muted-foreground">
-                      {isProUser ? 'Pro Plan' : 'Free Plan'}
+                      {isProUser ? t('proPlan') : t('freePlan')}
                     </p>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => router.push('/manage')}>
                     <QrCode className="mr-2 h-4 w-4" />
-                    My QR Codes
+                    {tSidebar('myQrCodes')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => router.push('/account')}>
                     <User className="mr-2 h-4 w-4" />
-                    Account
+                    {tSidebar('account')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => router.push('/account/settings')}>
                     <Settings className="mr-2 h-4 w-4" />
-                    Settings
+                    {tSidebar('settings')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => router.push('/pricing')}>
                     <CreditCard className="mr-2 h-4 w-4" />
-                    Pricing
+                    {t('pricing')}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                     <LogOut className="mr-2 h-4 w-4" />
-                    Sign Out
+                    {t('signOut')}
                   </DropdownMenuItem>
 
                 </DropdownMenuContent>
@@ -100,10 +105,10 @@ export function Header() {
           ) : (
             <div className="flex items-center gap-2">
               <Button variant="ghost" onClick={() => router.push('/login')}>
-                Sign In
+                {t('signIn')}
               </Button>
               <Button variant="secondary" onClick={() => router.push('/register')}>
-                Get Started
+                {t('getStarted')}
               </Button>
             </div>
           )}

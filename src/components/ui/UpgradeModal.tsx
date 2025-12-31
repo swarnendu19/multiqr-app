@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { Sparkles } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface UpgradeModalProps {
     open: boolean;
@@ -20,10 +21,14 @@ interface UpgradeModalProps {
 export function UpgradeModal({
     open,
     onOpenChange,
-    title = "Upgrade to Pro",
-    description = "This feature is available exclusively to Pro plan subscribers. Upgrade now to unlock unlimited potential.",
+    title,
+    description,
 }: UpgradeModalProps) {
+    const t = useTranslations('UpgradeModal');
     const router = useRouter();
+
+    const displayTitle = title || t('title');
+    const displayDesc = description || t('description');
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -31,29 +36,29 @@ export function UpgradeModal({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <Sparkles className="h-5 w-5 text-primary" />
-                        {title}
+                        {displayTitle}
                     </DialogTitle>
-                    <DialogDescription>{description}</DialogDescription>
+                    <DialogDescription>{displayDesc}</DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="flex flex-col gap-2">
                         <div className="flex items-center gap-2 text-sm">
-                            <span className="text-primary">✓</span> Unlimited QR Codes
+                            <span className="text-primary">✓</span> {t('feature1')}
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                            <span className="text-primary">✓</span> Advanced Styling & Logos
+                            <span className="text-primary">✓</span> {t('feature2')}
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                            <span className="text-primary">✓</span> SVG & JPEG Exports
+                            <span className="text-primary">✓</span> {t('feature3')}
                         </div>
                         <div className="flex items-center gap-2 text-sm">
-                            <span className="text-primary">✓</span> Scan Analytics
+                            <span className="text-primary">✓</span> {t('feature4')}
                         </div>
                     </div>
                 </div>
                 <DialogFooter className="flex-col sm:flex-row gap-2">
                     <Button variant="outline" onClick={() => onOpenChange(false)}>
-                        Cancel
+                        {t('cancel')}
                     </Button>
                     <Button
                         onClick={() => {
@@ -62,7 +67,7 @@ export function UpgradeModal({
                         }}
                         className="w-full sm:w-auto"
                     >
-                        Upgrade to Pro
+                        {t('upgradeButton')}
                     </Button>
                 </DialogFooter>
             </DialogContent>
