@@ -76,7 +76,7 @@ export function CanvasToolbar({
   };
 
   return (
-    <div className="flex items-center gap-2 p-3 border-b border-border bg-card">
+    <div className="flex items-center gap-2 p-3 border-b border-border bg-card overflow-x-auto no-scrollbar">
       <input
         ref={fileInputRef}
         type="file"
@@ -96,7 +96,7 @@ export function CanvasToolbar({
         variant="outline"
         size="sm"
         onClick={handleCenterLogoClick}
-        className="gap-1.5 relative"
+        className="gap-1.5 relative whitespace-nowrap shrink-0"
       >
         <CircleDot className="h-4 w-4" />
         {t('centerLogo')}
@@ -107,7 +107,7 @@ export function CanvasToolbar({
         variant="outline"
         size="sm"
         onClick={() => fileInputRef.current?.click()}
-        className="gap-1.5"
+        className="gap-1.5 whitespace-nowrap shrink-0"
       >
         <ImageIcon className="h-4 w-4" />
         {t('addLogo')}
@@ -117,7 +117,7 @@ export function CanvasToolbar({
         variant="outline"
         size="sm"
         onClick={onAddText}
-        className="gap-1.5"
+        className="gap-1.5 whitespace-nowrap shrink-0"
       >
         <Type className="h-4 w-4" />
         {t('addText')}
@@ -125,7 +125,7 @@ export function CanvasToolbar({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-1.5">
+          <Button variant="outline" size="sm" className="gap-1.5 whitespace-nowrap shrink-0">
             <Square className="h-4 w-4" />
             {t('addShape')}
           </Button>
@@ -148,7 +148,7 @@ export function CanvasToolbar({
         variant="ghost"
         size="sm"
         onClick={onClear}
-        className="gap-1.5 text-muted-foreground hover:text-destructive"
+        className="gap-1.5 text-muted-foreground hover:text-destructive whitespace-nowrap shrink-0"
       >
         <RotateCcw className="h-4 w-4" />
         {t('clear')}
@@ -156,7 +156,7 @@ export function CanvasToolbar({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="sm" className="gap-1.5">
+          <Button variant="secondary" size="sm" className="gap-1.5 whitespace-nowrap shrink-0">
             <Download className="h-4 w-4" />
             {t('export')}
           </Button>

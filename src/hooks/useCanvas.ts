@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { Canvas as FabricCanvas, FabricImage, FabricText, Rect, Circle, Group } from 'fabric';
+import { Canvas as FabricCanvas, FabricImage, IText, Rect, Circle, Group } from 'fabric';
 import { toast } from 'sonner';
 import type { FabricObject } from 'fabric';
 import { FrameTemplate } from '@/types/qr';
@@ -336,7 +336,7 @@ export function useCanvas(canvasRef: React.RefObject<HTMLCanvasElement>, options
       });
       objects.push(labelRect);
 
-      const labelText = new FabricText(frame.labelText || 'SCAN ME', {
+      const labelText = new IText(frame.labelText || 'SCAN ME', {
         left: (frameSize / 2),
         top: labelY + (labelHeight / 2),
         fontSize: 16,
@@ -371,7 +371,7 @@ export function useCanvas(canvasRef: React.RefObject<HTMLCanvasElement>, options
       });
       objects.push(bannerRect);
 
-      const bannerText = new FabricText(frame.labelText || 'SCAN TO VISIT', {
+      const bannerText = new IText(frame.labelText || 'SCAN TO VISIT', {
         left: frameSize / 2,
         top: frameSize - 20 + (bannerHeight / 2),
         fontSize: 18,
@@ -470,7 +470,7 @@ export function useCanvas(canvasRef: React.RefObject<HTMLCanvasElement>, options
   const addText = useCallback((text: string, textOptions?: { fontSize?: number; fill?: string; fontFamily?: string }) => {
     if (!fabricCanvas) return null;
 
-    const fabricText = new FabricText(text, {
+    const fabricText = new IText(text, {
       left: 50,
       top: 50,
       fontSize: textOptions?.fontSize || 24,
@@ -482,8 +482,20 @@ export function useCanvas(canvasRef: React.RefObject<HTMLCanvasElement>, options
     fabricCanvas.setActiveObject(fabricText);
     fabricCanvas.renderAll();
 
+    const layerId = generateLayerId();
+
+    // Update layer name when text changes
+    fabricText.on('changed', () => {
+      setLayers(prev => prev.map(l => {
+        if (l.id === layerId) {
+          return { ...l, name: fabricText.text?.substring(0, 20) || 'Text' };
+        }
+        return l;
+      }));
+    });
+
     const layer: CanvasLayer = {
-      id: generateLayerId(),
+      id: layerId,
       name: text.substring(0, 20) || 'Text',
       type: 'text',
       visible: true,

@@ -207,9 +207,9 @@ export default function QREditor() {
                 </div>
             </header>
 
-            <div className="flex-1 flex">
+            <div className="flex-1 flex flex-col lg:flex-row h-[calc(100vh-3.5rem)] overflow-hidden">
                 {/* Left: Controls */}
-                <aside className="w-80 border-r border-border bg-card flex flex-col">
+                <aside className="w-full lg:w-80 border-r border-border bg-card flex flex-col h-1/2 lg:h-full order-2 lg:order-1">
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
                         <TabsList className="grid grid-cols-5 m-2">
                             <TabsTrigger value="content"><FileText className="h-4 w-4" /></TabsTrigger>
@@ -259,7 +259,7 @@ export default function QREditor() {
                 </aside>
 
                 {/* Center: Canvas */}
-                <main className="flex-1 flex flex-col bg-muted/30">
+                <main className="flex-1 flex flex-col bg-muted/30 h-1/2 lg:h-full order-1 lg:order-2 overflow-hidden">
                     <CanvasToolbar
                         onAddLogo={addLogo}
                         onAddCenterLogo={addCenterLogo}
@@ -270,11 +270,10 @@ export default function QREditor() {
                         isProUser={isProUser}
                         onUpgradeRequired={handleUpgradeRequired}
                     />
-                    <div className="flex-1 flex items-center justify-center p-8">
-                        <div className="bg-card rounded-xl shadow-soft border border-border p-4">
-                            <canvas ref={canvasRef} />
+                    <div className="flex-1 flex items-center justify-center p-4 lg:p-8 overflow-auto">
+                        <div className="bg-card rounded-xl shadow-soft border border-border p-4 shrink-0">
+                            <canvas ref={canvasRef} className="max-w-full h-auto" />
                         </div>
-
                     </div>
                 </main>
             </div>
